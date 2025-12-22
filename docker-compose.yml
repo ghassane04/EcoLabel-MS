@@ -1,0 +1,124 @@
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    environment:
+      POSTGRES_USER: eco
+      POSTGRES_PASSWORD: eco_pass
+      POSTGRES_DB: eco_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  minio:
+    image: minio/minio
+    container_name: minio
+    environment:
+      MINIO_ACCESS_KEY: minio
+      MINIO_SECRET_KEY: minio123
+    command: server /data
+    ports:
+      - "9000:9000"
+    volumes:
+      - minio-data:/data
+
+  parser-produit:
+    build: ./parser-produit
+    image: parser-produit:latest
+    container_name: parser-produit
+    ports:
+      - "8001:8001"
+    environment:
+      - DB_HOST=postgres
+      - DB_USER=eco
+      - DB_PASSWORD=eco_pass
+      - DB_NAME=eco_db
+    depends_on:
+      - postgres
+
+  nlp-ingredients:
+    build: ./nlp-ingredients
+    image: nlp-ingredients:latest
+    container_name: nlp-ingredients
+    ports:
+      - "8002:8002"
+    environment:
+      - DB_HOST=postgres
+      - DB_USER=eco
+      - DB_PASSWORD=eco_pass
+      - DB_NAME=eco_db
+    depends_on:
+      - postgres
+
+  lca-lite:
+    build: ./lca-lite
+    image: lca-lite:latest
+    container_name: lca-lite
+    ports:
+      - "8003:8003"
+    environment:
+      - DB_HOST=postgres
+      - DB_USER=eco
+      - DB_PASSWORD=eco_pass
+      - DB_NAME=eco_db
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESS_KEY=minio
+      - MINIO_SECRET_KEY=minio123
+    depends_on:
+      - postgres
+      - minio
+
+  scoring:
+    build: ./scoring
+    image: scoring:latest
+    container_name: scoring
+    ports:
+      - "8004:8004"
+    environment:
+      - DB_HOST=postgres
+      - DB_USER=eco
+      - DB_PASSWORD=eco_pass
+      - DB_NAME=eco_db
+    depends_on:
+      - postgres
+
+  widget-api:
+    build: ./widget-api/backend
+    image: widget-api:latest
+    container_name: widget-api
+    ports:
+      - "8005:8005"
+    environment:
+      - DB_HOST=postgres
+      - DB_USER=eco
+      - DB_PASSWORD=eco_pass
+      - DB_NAME=eco_db
+    depends_on:
+      - postgres
+      - scoring
+
+  widget-ui:
+    build: ./front
+    image: widget-ui:latest
+    container_name: widget-ui
+    ports:
+      - "3000:3000"
+    depends_on:
+      - widget-api
+
+  provenance:
+    build: ./provenance
+    image: provenance:latest
+    container_name: provenance
+    ports:
+      - "8006:8006"
+    environment:
+      - MLFLOW_TRACKING_URI=file:///app/mlruns
+    depends_on:
+      - minio
+
+volumes:
+  pgdata:
+  minio-data:

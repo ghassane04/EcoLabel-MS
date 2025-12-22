@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+pydantic
+psycopg2-binary
+SQLAlchemy
+pytesseract
+Pillow
+beautifulsoup4
+python-multipart
