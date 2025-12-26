@@ -1,0 +1,135 @@
+# ===========================================
+# EcoLabel-MS .gitignore
+# ===========================================
+
+# ==== Node.js / Frontend ====
+node_modules/
+front/node_modules/
+widget-api/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+dist/
+build/
+.cache/
+
+# ==== Python ====
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+*.egg
+.eggs/
+*.whl
+pip-log.txt
+pip-delete-this-directory.txt
+.venv/
+venv/
+ENV/
+env/
+.env.local
+.env.*.local
+
+# ==== ML Models & Data (large files) ====
+*.pkl
+*.joblib
+*.h5
+*.pt
+*.pth
+*.onnx
+models/*.pkl
+*/models/*.pkl
+scoring/models/*.pkl
+lca-lite/models/*.pkl
+lca-lite/data/*.pkl
+
+# ==== Docker ====
+*.log
+docker-compose.override.yml
+
+# ==== IDE & Editors ====
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+*.sublime-project
+*.sublime-workspace
+
+# ==== OS Files ====
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ==== Test & Coverage ====
+.coverage
+htmlcov/
+.pytest_cache/
+.tox/
+.nox/
+coverage.xml
+*.cover
+*.coverage
+.hypothesis/
+
+# ==== Jupyter Notebooks ====
+.ipynb_checkpoints/
+*.ipynb
+
+# ==== Temporary Files ====
+*.tmp
+*.temp
+*.bak
+*.backup
+tmp/
+temp/
+
+# ==== Environment Variables (sensitive) ====
+.env
+!.env.example
+
+# ==== MinIO Data ====
+minio_data/
+
+# ==== Logs ====
+logs/
+*.log
+
+# ==== LaTeX Build Files ====
+docs/*.aux
+docs/*.log
+docs/*.out
+docs/*.toc
+docs/*.lof
+docs/*.lot
+docs/*.fls
+docs/*.fdb_latexmk
+docs/*.synctex.gz
+docs/*.bbl
+docs/*.blg
+docs/*.nav
+docs/*.snm
+docs/*.vrb
+
+# ==== Compiled Files ====
+*.exe
+*.dll
+*.so
+*.dylib
+
+# ==== Archives ====
+*.zip
+*.tar.gz
+*.rar
+*.7z
