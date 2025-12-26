@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
-import { Upload, FileText, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { Upload, CheckCircle, Loader2, ArrowRight } from 'lucide-react';
 import { PageHeader } from '../layout/PageHeader';
+import { useProduct } from '../../context/ProductContext';
 
 interface ProductParsed {
   id: number;
@@ -10,9 +11,15 @@ interface ProductParsed {
   created_at: string;
 }
 
-export function ParserProduitPage() {
+interface ParserProduitPageProps {
+  onNavigate?: (page: 'nlp' | 'lca' | 'scoring' | 'dashboard') => void;
+}
+
+export function ParserProduitPage({ onNavigate }: ParserProduitPageProps) {
+  const { parsedProduct, setParsedProduct, setCurrentStep } = useProduct();
   const [parsing, setParsing] = useState(false);
-  const [results, setResults] = useState<ProductParsed[]>([]);
+  // Initialize results from context if available
+  const [results, setResults] = useState<ProductParsed[]>(parsedProduct ? [parsedProduct] : []);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -20,11 +27,11 @@ export function ParserProduitPage() {
     if (!files || files.length === 0) return;
 
     setParsing(true);
+    setCurrentStep('parsing');
     const formData = new FormData();
     for (let i = 0; i < files.length; i++) {
       formData.append('files', files[i]);
     }
-    // Optional: formData.append('gtin', '123456');
 
     try {
       const response = await fetch('http://localhost:8001/product/parse', {
@@ -36,12 +43,18 @@ export function ParserProduitPage() {
 
       const data = await response.json();
       setResults(data);
+
+      // Store first result in shared context
+      if (data.length > 0) {
+        setParsedProduct(data[0]);
+        setCurrentStep('nlp');
+      }
     } catch (error) {
       console.error("Error parsing files:", error);
       alert("Erreur lors de l'analyse des fichiers. Vérifiez que le microservice Parser est lancé.");
+      setCurrentStep('idle');
     } finally {
       setParsing(false);
-      // Reset input
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
@@ -50,8 +63,12 @@ export function ParserProduitPage() {
     fileInputRef.current?.click();
   };
 
+  const goToNLP = () => {
+    if (onNavigate) onNavigate('nlp');
+  };
+
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-8">
       <PageHeader
         title="ParserProduit"
         description="Extraction automatique des données produits depuis fiches PDF, HTML, images ou codes-barres (GTIN)"
@@ -59,11 +76,11 @@ export function ParserProduitPage() {
       />
 
       {/* Upload Section */}
-      <div className="bg-white rounded-xl border-2 border-dashed border-gray-300 p-12 mb-6 hover:border-emerald-500 transition-colors">
+      <div className="bg-white rounded-xl border-2 border-dashed border-gray-300 p-6 md:p-12 mb-6 hover:border-emerald-500 transition-colors">
         <div className="text-center">
-          <Upload className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-gray-900 mb-2">Importer des fichiers produits</h3>
-          <p className="text-gray-600 mb-4">
+          <Upload className="w-12 h-12 md:w-16 md:h-16 text-gray-400 mx-auto mb-3 md:mb-4" />
+          <h3 className="text-base md:text-lg text-gray-900 mb-2">Importer des fichiers produits</h3>
+          <p className="text-sm md:text-base text-gray-600 mb-4">
             PDF, HTML, images (JPG, PNG) ou fichiers texte
           </p>
 
@@ -90,28 +107,22 @@ export function ParserProduitPage() {
         </div>
       </div>
 
-      {/* Technology Stack */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-          <p className="text-blue-900 mb-1">OCR</p>
-          <p className="text-blue-700 text-sm">Tesseract</p>
-        </div>
-        <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
-          <p className="text-purple-900 mb-1">Web Scraping</p>
-          <p className="text-purple-700 text-sm">BeautifulSoup</p>
-        </div>
-        <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-          <p className="text-green-900 mb-1">Base de données</p>
-          <p className="text-green-700 text-sm">PostgreSQL</p>
-        </div>
-      </div>
+
 
       {/* Results */}
       {results.length > 0 && (
         <div>
-          <h3 className="text-gray-900 mb-4">
-            Résultats bruts ({results.length})
-          </h3>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h3 className="text-base md:text-lg text-gray-900">
+              Résultats bruts ({results.length})
+            </h3>
+            <button
+              onClick={goToNLP}
+              className="flex items-center justify-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors text-sm md:text-base"
+            >
+              Étape suivante: NLP <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
           <div className="space-y-4">
             {results.map((product) => (
               <div

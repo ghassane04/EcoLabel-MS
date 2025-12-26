@@ -128,8 +128,8 @@ query GetProductScore($gtin: String!) {
         <button
           onClick={() => setView('api')}
           className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${view === 'api'
-              ? 'bg-emerald-600 text-white'
-              : 'text-gray-600 hover:bg-gray-100'
+            ? 'bg-emerald-600 text-white'
+            : 'text-gray-600 hover:bg-gray-100'
             }`}
         >
           <Code className="w-4 h-4" />
@@ -138,8 +138,8 @@ query GetProductScore($gtin: String!) {
         <button
           onClick={() => setView('preview')}
           className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${view === 'preview'
-              ? 'bg-emerald-600 text-white'
-              : 'text-gray-600 hover:bg-gray-100'
+            ? 'bg-emerald-600 text-white'
+            : 'text-gray-600 hover:bg-gray-100'
             }`}
         >
           <Eye className="w-4 h-4" />
@@ -149,21 +149,6 @@ query GetProductScore($gtin: String!) {
 
       {view === 'api' ? (
         <div className="space-y-6">
-          {/* Technology */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-              <p className="text-blue-900 mb-1">Frontend</p>
-              <p className="text-blue-700 text-sm">React + Tailwind CSS</p>
-            </div>
-            <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
-              <p className="text-purple-900 mb-1">API Backend</p>
-              <p className="text-purple-700 text-sm">FastAPI + GraphQL</p>
-            </div>
-            <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-              <p className="text-green-900 mb-1">Base de données</p>
-              <p className="text-green-700 text-sm">PostgreSQL (Public)</p>
-            </div>
-          </div>
 
           {/* REST API */}
           <div className="bg-gray-900 rounded-xl p-6 text-white">

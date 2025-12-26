@@ -1,24 +1,45 @@
-import { useState } from 'react';
-import { BrainCircuit, Sparkles, Loader2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { BrainCircuit, Sparkles, Loader2, ArrowRight, AlertCircle } from 'lucide-react';
 import { PageHeader } from '../layout/PageHeader';
+import { useProduct } from '../../context/ProductContext';
 
 interface ExtractedEntity {
   text: string;
   type: 'ingredient' | 'label' | 'origin' | 'packaging';
   normalized: string;
-  impact: string;
   confidence: number;
 }
 
-export function NLPIngredientsPage() {
+interface NLPIngredientsPageProps {
+  onNavigate?: (page: 'lca' | 'scoring' | 'dashboard') => void;
+}
+
+export function NLPIngredientsPage({ onNavigate }: NLPIngredientsPageProps) {
+  const { parsedProduct, nlpResult: contextNlpResult, setNlpResult, setCurrentStep } = useProduct();
   const [inputText, setInputText] = useState('');
   const [extracting, setExtracting] = useState(false);
-  const [entities, setEntities] = useState<ExtractedEntity[]>([]);
+  // Initialize entities from context if available
+  const [entities, setEntities] = useState<ExtractedEntity[]>(
+    contextNlpResult?.entities ? contextNlpResult.entities.map((e: any) => ({
+      text: e.word,
+      type: 'ingredient' as const,
+      normalized: e.word?.toLowerCase() || '',
+      confidence: e.score || 0
+    })) : []
+  );
+
+  // Auto-fill with parsed product text
+  useEffect(() => {
+    if (parsedProduct?.raw_text) {
+      setInputText(parsedProduct.raw_text);
+    }
+  }, [parsedProduct]);
 
   const handleExtract = async () => {
     if (!inputText.trim()) return;
 
     setExtracting(true);
+    setCurrentStep('nlp');
     try {
       const response = await fetch('http://localhost:8002/nlp/extract', {
         method: 'POST',
@@ -32,29 +53,38 @@ export function NLPIngredientsPage() {
       const data = await response.json();
 
       // Map API response
-      // Response: { entities: [{entity, score, word}], normalized_ingredients: [] }
       const mapped: ExtractedEntity[] = data.entities.map((e: any) => ({
         text: e.word,
         type: mapEntityType(e.entity_group),
-        normalized: e.word.toLowerCase(), // Simplfied
-        impact: 'Impact calculé via LCALite',
+        normalized: e.word.toLowerCase(),
         confidence: e.score
       }));
 
       setEntities(mapped);
+
+      // Store in shared context
+      setNlpResult({
+        entities: data.entities,
+        normalized_ingredients: mapped.map(e => e.normalized)
+      });
+      setCurrentStep('lca');
     } catch (e) {
       console.error(e);
-      alert("Erreur lors de l'appel au service NLP (Port 8002).");
+      alert("Erreur lors de l'appel au service NLP (Port 8002). Le modèle peut prendre 2-3 minutes à charger.");
+      setCurrentStep('idle');
     } finally {
       setExtracting(false);
     }
   };
 
   const mapEntityType = (group: string): ExtractedEntity['type'] => {
-    // Map BERT NER groups to our UI types
     if (group === 'ORG' || group === 'MISC') return 'ingredient';
     if (group === 'LOC') return 'origin';
     return 'label';
+  };
+
+  const goToLCA = () => {
+    if (onNavigate) onNavigate('lca');
   };
 
   const typeColors = {
@@ -65,7 +95,7 @@ export function NLPIngredientsPage() {
   };
 
   const typeLabels = {
-    ingredient: 'Ingrédient / Entité',
+    ingredient: 'Ingrédient',
     label: 'Label',
     origin: 'Origine',
     packaging: 'Emballage'
@@ -79,6 +109,17 @@ export function NLPIngredientsPage() {
         endpoint="POST /nlp/extract"
       />
 
+      {/* Alert if we have parsed data */}
+      {parsedProduct && (
+        <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4 mb-6 flex items-start gap-3">
+          <Sparkles className="w-5 h-5 text-emerald-600 mt-0.5" />
+          <div>
+            <p className="text-emerald-900 font-medium">Texte du Parser chargé automatiquement</p>
+            <p className="text-emerald-700 text-sm">Le texte extrait de votre fichier est prêt à analyser.</p>
+          </div>
+        </div>
+      )}
+
       {/* Input Section */}
       <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
         <label className="text-gray-900 mb-2 block">
@@ -87,9 +128,9 @@ export function NLPIngredientsPage() {
         <textarea
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
-          placeholder="Ex: Sauce tomate bio (92%), basilic frais, huile de palme durable, conditionnée dans un emballage verre recyclable..."
+          placeholder="Ex: Sauce tomate bio (92%), basilic frais, huile de palme durable..."
           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
-          rows={4}
+          rows={6}
         />
         <button
           onClick={handleExtract}
@@ -105,29 +146,23 @@ export function NLPIngredientsPage() {
         </button>
       </div>
 
-      {/* Technology Stack */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
-          <p className="text-purple-900 mb-1">NLP Engine</p>
-          <p className="text-purple-700 text-sm">Hugging Face Transformers</p>
-        </div>
-        <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-          <p className="text-blue-900 mb-1">Modèle</p>
-          <p className="text-blue-700 text-sm">BERT Multilingue (NER)</p>
-        </div>
-        <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-          <p className="text-green-900 mb-1">Référentiels</p>
-          <p className="text-green-700 text-sm">PostgreSQL</p>
-        </div>
-      </div>
+
 
       {/* Results */}
       {entities.length > 0 && (
         <div>
-          <h3 className="text-gray-900 mb-4 flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-emerald-600" />
-            Entités extraites et normalisées ({entities.length})
-          </h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-gray-900 flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-emerald-600" />
+              Entités extraites ({entities.length})
+            </h3>
+            <button
+              onClick={goToLCA}
+              className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+            >
+              Étape suivante: LCA <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
           <div className="space-y-3">
             {entities.map((entity, index) => (
               <div
@@ -145,16 +180,6 @@ export function NLPIngredientsPage() {
                     <div className="text-xs text-gray-500 mb-1">Confiance</div>
                     <div className="text-emerald-600">{(entity.confidence * 100).toFixed(0)}%</div>
                   </div>
-                </div>
-
-                <div className="bg-gray-50 rounded-lg p-3 mb-2">
-                  <p className="text-gray-600 text-sm mb-1">Normalisation</p>
-                  <p className="text-gray-900">{entity.normalized}</p>
-                </div>
-
-                <div className="bg-emerald-50 rounded-lg p-3">
-                  <p className="text-emerald-700 text-sm mb-1">Impact environnemental</p>
-                  <p className="text-emerald-900">{entity.impact}</p>
                 </div>
               </div>
             ))}

@@ -1,0 +1,21 @@
+FICHE PRODUIT - Pizza Surgelée Viande
+==========================================
+
+Code-barres (GTIN): 9876543210123
+
+INGRÉDIENTS:
+- Pâte industrielle (40%)
+- Viande de boeuf (30%)
+- Fromage industriel (20%)
+- Sauce tomate (10%)
+
+EMBALLAGE:
+- Matériau: Plastique non recyclable
+- Poids: 500g
+
+TRANSPORT:
+- Distance: 2000 km
+- Mode: Avion cargo
+
+LABELS:
+- Aucun

@@ -5,8 +5,8 @@ from transformers import pipeline
 import json
 from contextlib import asynccontextmanager
 
-from database import SessionLocal, engine
-from models import Base, IngredientTaxonomy, ExtractionLog
+from app.database import SessionLocal, engine
+from app.models import Base, IngredientTaxonomy, ExtractionLog
 
 # NLP Pipeline
 ner_pipeline = None
@@ -43,6 +43,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.get("/health")
+def health_check():
+    return {"status": "healthy", "service": "nlp-ingredients"}
 
 def get_db():
     db = SessionLocal()

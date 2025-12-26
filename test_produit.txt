@@ -1,0 +1,33 @@
+FICHE PRODUIT - Sauce Tomate Bio Basilic
+==========================================
+
+Code-barres (GTIN): 3245678901234
+
+INGRÉDIENTS:
+- Tomates bio italiennes (92%)
+- Basilic frais (5%)
+- Huile d'olive extra vierge (2%)
+- Sel de mer (1%)
+
+INFORMATIONS NUTRITIONNELLES (pour 100g):
+- Énergie: 45 kcal
+- Matières grasses: 1.5g
+- Glucides: 6g
+- Protéines: 1.2g
+
+EMBALLAGE:
+- Matériau: Verre recyclable
+- Poids: 720g
+
+ORIGINE:
+- Tomates: Italie (Sicile)
+- Fabrication: France
+
+LABELS:
+- Agriculture Biologique (AB)
+- Eurofeuille
+- Emballage recyclable
+
+TRANSPORT:
+- Distance: 800 km
+- Mode: Camion réfrigéré

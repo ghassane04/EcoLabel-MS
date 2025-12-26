@@ -7,6 +7,7 @@ import { LCALitePage } from './components/pages/LCALitePage';
 import { ScoringPage } from './components/pages/ScoringPage';
 import { WidgetAPIPage } from './components/pages/WidgetAPIPage';
 import { ProvenancePage } from './components/pages/ProvenancePage';
+import { ProductProvider } from './context/ProductContext';
 
 type Page = 'dashboard' | 'parser' | 'nlp' | 'lca' | 'scoring' | 'widget' | 'provenance';
 
@@ -18,11 +19,11 @@ export default function App() {
       case 'dashboard':
         return <Dashboard />;
       case 'parser':
-        return <ParserProduitPage />;
+        return <ParserProduitPage onNavigate={setCurrentPage} />;
       case 'nlp':
-        return <NLPIngredientsPage />;
+        return <NLPIngredientsPage onNavigate={setCurrentPage} />;
       case 'lca':
-        return <LCALitePage />;
+        return <LCALitePage onNavigate={setCurrentPage} />;
       case 'scoring':
         return <ScoringPage />;
       case 'widget':
@@ -35,11 +36,13 @@ export default function App() {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      <Sidebar currentPage={currentPage} onNavigate={setCurrentPage} />
-      <main className="flex-1 overflow-auto">
-        {renderPage()}
-      </main>
-    </div>
+    <ProductProvider>
+      <div className="flex h-screen bg-gray-50">
+        <Sidebar currentPage={currentPage} onNavigate={setCurrentPage} />
+        <main className="flex-1 overflow-auto">
+          {renderPage()}
+        </main>
+      </div>
+    </ProductProvider>
   );
 }

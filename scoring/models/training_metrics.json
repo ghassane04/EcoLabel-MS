@@ -1,0 +1,90 @@
+{
+  "best_model": "Random Forest",
+  "all_results": {
+    "Logistic Regression": {
+      "accuracy": 0.9,
+      "f1_score": 0.8933333333333333,
+      "cv_mean": 0.7,
+      "cv_std": 0.09999999999999999
+    },
+    "Random Forest": {
+      "accuracy": 1.0,
+      "f1_score": 1.0,
+      "cv_mean": 0.975,
+      "cv_std": 0.049999999999999996
+    },
+    "Gradient Boosting": {
+      "accuracy": 1.0,
+      "f1_score": 1.0,
+      "cv_mean": 0.95,
+      "cv_std": 0.06123724356957946
+    }
+  },
+  "confusion_matrix": [
+    [
+      2,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      2,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      2,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      2,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      2
+    ]
+  ],
+  "feature_importance": {
+    "energy_mj": 0.22539916676299726,
+    "transport_km": 0.20013035715965424,
+    "co2_kg": 0.19612311075477865,
+    "water_l": 0.19331098281136447,
+    "packaging_weight_kg": 0.0736897026008956,
+    "category_meat": 0.028735372694264873,
+    "has_bio_label": 0.025411811193892294,
+    "has_recyclable": 0.019475550536432,
+    "has_local_label": 0.007944824535585473,
+    "packaging_type_glass": 0.006326125839583364
+  },
+  "features": {
+    "numeric": [
+      "co2_kg",
+      "water_l",
+      "energy_mj",
+      "packaging_weight_kg",
+      "transport_km"
+    ],
+    "categorical": [
+      "packaging_type",
+      "category"
+    ],
+    "binary": [
+      "has_bio_label",
+      "has_recyclable",
+      "has_local_label"
+    ]
+  }
+}

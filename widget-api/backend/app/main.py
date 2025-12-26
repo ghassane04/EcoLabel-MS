@@ -2,8 +2,8 @@ from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
-from database import SessionLocal
-from models import ProductScore
+from app.database import SessionLocal
+from app.models import ProductScore
 
 app = FastAPI(title="WidgetAPI")
 
@@ -15,6 +15,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.get("/health")
+def health_check():
+    return {"status": "healthy", "service": "widget-api"}
 
 def get_db():
     db = SessionLocal()

@@ -16,8 +16,8 @@ if sys.platform == "win32":
 async def lifespan(app: FastAPI):
     # Startup
     try:
-        from database import SessionLocal, engine
-        from models import Base
+        from app.database import SessionLocal, engine
+        from app.models import Base
         Base.metadata.create_all(bind=engine)
         print("Database tables created successfully")
     except Exception as e:
@@ -38,10 +38,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/health")
+def health_check():
+    return {"status": "healthy", "service": "parser-produit"}
+
 # Import after app creation to avoid issues
-from database import SessionLocal
-from models import ProductRaw
-from schemas import ProductParsed
+from app.database import SessionLocal
+from app.models import ProductRaw
+from app.schemas import ProductParsed
 
 def get_db():
     db = SessionLocal()

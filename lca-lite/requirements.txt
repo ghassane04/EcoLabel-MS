@@ -6,3 +6,7 @@ psycopg2-binary
 minio
 python-multipart
 pydantic
+scikit-learn
+xgboost
+numpy
+joblib

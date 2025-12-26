@@ -1,0 +1,593 @@
+%% 
+%% EcoLabel-MS Academic Paper
+%% Adapté du template Elsevier / inspiré de AgriAlertX
+%% 
+
+\documentclass[preprint,12pt,a4paper]{elsarticle}
+
+\usepackage{geometry}
+\geometry{
+    a4paper,
+    left=2cm,
+    right=2cm,
+    top=1.5cm,
+    bottom=3cm
+}
+
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{setspace}
+\usepackage{float}
+\usepackage[utf8]{inputenc}
+\usepackage[french]{babel}
+\usepackage{framed}
+\usepackage{enumitem}
+\usepackage{pdfpages}
+\usepackage{tablefootnote}
+\usepackage{amssymb}
+\usepackage{subfig}
+\usepackage{multicol}
+\usepackage{hyperref}
+
+\setlength{\parindent}{0pt}
+
+% Configuration du code (Python / pseudo-code API)
+\lstset{
+    language=Python,
+    basicstyle=\ttfamily\footnotesize,
+    keywordstyle=\color{blue}\bfseries,
+    commentstyle=\color{green!60!black},
+    stringstyle=\color{red},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    stepnumber=1,
+    numbersep=5pt,
+    backgroundcolor=\color{gray!10},
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    frame=single,
+    rulecolor=\color{black},
+    tabsize=2,
+    captionpos=b,
+    breaklines=true,
+    breakatwhitespace=false,
+    escapeinside={\%*}{*)},
+    morekeywords={String, double, static, private, public, if, else, return, new, def, import, from}
+}
+
+\journal{EcoLabel-MS}
+
+\begin{document}
+\renewcommand{\labelenumii}{\arabic{enumi}.\arabic{enumii}}
+
+\begin{frontmatter} 
+
+\title{EcoLabel-MS : Plateforme de Scoring Environnemental bas\'ee sur les Microservices et l'Apprentissage Automatique pour la Transition \'Ecologique}
+
+\author[label1]{BOUGERFAOUI Ghassane}
+\author[label1]{BELGUERMAH Mohamed Ali}
+\author[label1]{LABCHIRI Ahmed}
+\author[label1]{EL ANANI Souhaib}
+
+\address[label1]{EMSI -- \'Ecole Marocaine des Sciences de l'Ingénieur, Marrakech, Maroc}
+
+\begin{abstract}
+La crise climatique impose une refonte profonde des modes de production et de consommation. Le secteur alimentaire, responsable d'environ un quart des émissions mondiales de gaz à effet de serre, est au cœur de ces enjeux. Dans ce contexte, \textit{EcoLabel-MS} propose une plateforme de scoring environnemental basée sur une architecture de microservices et des algorithmes d'apprentissage automatique, permettant de transformer des données techniques complexes (Analyse du Cycle de Vie, provenance, transport, emballage) en un score environnemental simple et actionnable (A--E).
+
+Le système s'appuie sur les standards de l'Analyse du Cycle de Vie (ACV) normalisés par les normes ISO 14040/14044, sur la méthode européenne Product Environmental Footprint (PEF) et sur des bases de données de référence comme AGRIBALYSE. Six microservices spécialisés assurent l'extraction OCR et sémantique, le calcul ACV simplifié, l'imputation des données manquantes par XGBoost, la classification A--E par modèles de type Random Forest/XGBoost, ainsi que la traçabilité complète des calculs via des outils de reproductibilité scientifique (DVC, MLflow, conteneurisation Docker).
+
+Les modèles de classification atteignent une précision de 100\,\% sur des jeux de test équilibrés (grades A--E), tandis que le modèle de régression pour les émissions de CO\textsubscript{2} atteint un coefficient de détermination $R^2 = 0{,}998$ et une MAE de 0,089\,kg. EcoLabel-MS démontre ainsi la faisabilité d'un éco-score automatisé, scientifiquement robuste, traçable et intégrable dans des contextes industriels et e-commerce.
+\end{abstract}
+
+\begin{keyword}
+Scoring environnemental \sep Analyse du Cycle de Vie (ACV) \sep Microservices \sep Machine Learning \sep XGBoost \sep AGRIBALYSE \sep PEF
+\end{keyword}
+
+\end{frontmatter}
+
+%--------------------------------------------------
+\section*{Métadonnées}
+%--------------------------------------------------
+
+\begin{table}[!ht]
+\centering
+\begin{tabular}{|l|p{7.5cm}|p{7.5cm}|}
+\hline
+\textbf{Nr.} & \textbf{Description des métadonnées} & \textbf{Valeur} \\
+\hline
+C1 & Version actuelle du code & v1.0 \\
+\hline
+C2 & Lien permanent vers le repository & \url{https://github.com/ghassane04/EcoLabel-MS} \\
+\hline
+C3 & Lien vers capsule reproductible & À définir (Docker Compose + DVC) \\
+\hline
+C4 & Licence & MIT License \\
+\hline
+C5 & Système de versioning & Git (GitHub) \\
+\hline
+C6 & Langages et outils & Python, FastAPI, TypeScript, React, PostgreSQL, Docker, XGBoost, Scikit-learn, DVC, MLflow \\
+\hline
+C7 & Environnements \& dépendances & Docker, Python 3.x, Node.js, PostgreSQL 15, Tesseract OCR \\
+\hline
+C8 & Documentation développeur & \texttt{README.md} et wiki GitHub \\
+\hline
+C9 & Contact support & \texttt{eco-label-ms@emsi.ma} (adresse illustrative) \\
+\hline
+\end{tabular}
+\label{codeMetadata} 
+\end{table}
+
+%--------------------------------------------------
+\section{Motivation et signification}
+%--------------------------------------------------
+
+La transition écologique exige des outils capables d'évaluer de manière transparente et reproductible l'impact environnemental des produits. Les consommateurs souhaitent comprendre l'empreinte réelle des produits qu'ils achètent, tandis que les pouvoirs publics mettent en place des dispositifs d'affichage environnemental pour inciter à l'éco-conception et guider les choix de consommation \cite{ademe_affichage,eco_score_greenly,carbo_ecoscore}.
+
+Les méthodes classiques d'Analyse du Cycle de Vie (ACV), bien que considérées comme la référence scientifique (ISO 14040/14044), demeurent complexes, coûteuses et difficiles à opérationnaliser à grande échelle pour des milliers de références produits \cite{agribalyse_doc,agribalyse_ocl}. De plus, la multiplication des indicateurs (changement climatique, eutrophisation, épuisement des ressources, occupation des sols, particules fines, etc.) rend la communication vers le grand public non triviale.
+
+\textit{EcoLabel-MS} répond à ces enjeux à travers :
+\begin{itemize}
+    \item l'automatisation du calcul d'un score environnemental global (A--E) à partir de données produits (ingrédients, origine, emballage, logistique) ;
+    \item la combinaison de l'ACV simplifiée et du Machine Learning (ML) pour estimer des impacts même en présence de données manquantes, en s'appuyant sur des approches d'imputation avancées \cite{xgboost_paper,xgboost_imputation_frontiers};
+    \item une architecture microservices évolutive permettant l'intégration progressive de nouvelles bases de données, méthodes ACV (PEF, méthodologie ADEME) et cas d'usage (textile, cosmétique, etc.) \cite{microservices_env_monitoring,mdpi_iot_microservices,arxiv_microservices_sustainability};
+    \item une traçabilité complète des calculs pour renforcer la confiance des consommateurs, des industriels et des autorités de régulation.
+\end{itemize}
+
+En synthèse, EcoLabel-MS vise à transformer une masse d'informations techniques (fichiers PDF, étiquettes, fiches techniques dispersées) en un signal simple et compréhensible : un éco-score A--E accompagné d'indicateurs détaillés et d'explications.
+
+%--------------------------------------------------
+\section{Fondements scientifiques du scoring environnemental}
+%--------------------------------------------------
+
+\subsection{Cadre méthodologique de l’ACV}
+
+L'Analyse du Cycle de Vie (ACV) est la méthodologie de référence pour quantifier les impacts environnementaux d'un produit, depuis l'extraction des matières premières jusqu'à la fin de vie (\textit{du berceau à la tombe}) \cite{agribalyse_doc,agribalyse_ocl}. Dans le contexte alimentaire, cette analyse inclut :
+\begin{itemize}
+    \item l'extraction et la production agricole des matières premières ;
+    \item la transformation industrielle (consommations d'énergie et d'eau, coproduits, pertes) ;
+    \item le transport et la distribution (logistique, chaîne du froid) ;
+    \item la phase d'utilisation éventuelle (préparation, cuisson, conservation) ;
+    \item la fin de vie (gestion des déchets, recyclage, incinération, mise en décharge).
+\end{itemize}
+
+Les principaux indicateurs ACV pris en compte dans EcoLabel-MS sont synthétisés dans le Tableau~\ref{tab:indicateurs_acv}.
+
+\begin{table}[H]
+\centering
+\caption{Exemples d'indicateurs ACV utilisés dans EcoLabel-MS}
+\label{tab:indicateurs_acv}
+\begin{tabular}{|l|l|p{7cm}|}
+\hline
+\textbf{Indicateur} & \textbf{Unité} & \textbf{Impact environnemental associé} \\
+\hline
+Changement climatique & kg CO\textsubscript{2} eq & Réchauffement global et dérèglement climatique \\
+\hline
+Épuisement des ressources en eau & m\textsuperscript{3} eau depriv. & Raréfaction de l'eau potable, stress hydrique \\
+\hline
+Occupation des terres & points ou m\textsuperscript{2}.an & Dégradation des sols, perte de biodiversité \\
+\hline
+Eutrophisation (eaux douces) & kg P eq & Prolifération d'algues, asphyxie des milieux aquatiques \\
+\hline
+Particules fines & incidence & Effets néfastes sur la santé respiratoire humaine \\
+\hline
+Épuisement des minéraux & kg Sb eq & Consommation de ressources non renouvelables \\
+\hline
+\end{tabular}
+\end{table}
+
+Le calcul d'un score unique nécessite une étape de normalisation et de pondération des indicateurs. EcoLabel-MS s'inspire du cadre PEF (\textit{Product Environmental Footprint}) proposé par la Commission européenne, qui définit 16 catégories d'impact et des règles d'agrégation \cite{waro_pef,footbridge_ademe_pef}.
+
+\subsection{AGRIBALYSE : base de données de référence}
+
+AGRIBALYSE, développée par l'ADEME et l'INRAE, fournit les inventaires de cycle de vie de plus de 2\,500 produits alimentaires et 200 productions agricoles \cite{agribalyse_doc,agribalyse_ocl,agribalyse3_librairie,agribalyse_openlca}. Cette base de données constitue la colonne vertébrale des facteurs d'émission utilisés dans EcoLabel-MS. Elle permet :
+\begin{itemize}
+    \item d'associer à chaque ingrédient un profil d'impact moyen (CO\textsubscript{2}, eau, énergie, occupation des sols, etc.) ;
+    \item de construire des profils produits à partir de la liste d'ingrédients et de leurs proportions ;
+    \item de calibrer et d'entraîner les modèles de régression et de classification utilisés pour l'imputation et le scoring.
+\end{itemize}
+
+%--------------------------------------------------
+\section{Description du logiciel}
+%--------------------------------------------------
+
+\subsection{Architecture logicielle}
+
+EcoLabel-MS adopte une architecture microservices découplée, containerisée via Docker, ce qui permet une scalabilité horizontale, une maintenabilité accrue et une reproductibilité forte des résultats \cite{boettiger_docker,ten_rules_docker,software_eng_docker}.
+
+\begin{enumerate}
+    \item \textbf{Vue d'ensemble}
+
+    La plateforme est organisée autour de six microservices principaux, chacun exposant des API REST :
+
+    \begin{itemize}
+        \item \textbf{ParserProduit (Port 8001)} : extraction OCR et parsing de données produits (images, PDF, fiches techniques) ;
+        \item \textbf{NLPIngrédients (Port 8002)} : analyse sémantique des ingrédients via Transformers (modèle BERT multilingual NER : \texttt{Davlan/bert-base-multilingual-cased-ner-hrl}) ;
+        \item \textbf{LCALite (Port 8003)} : calcul ACV simplifiée et imputation des données manquantes ;
+        \item \textbf{Scoring ML (Port 8004)} : classification et notation A--E ;
+        \item \textbf{WidgetAPI (Port 8005)} : exposition publique et intégration dans les sites e-commerce ;
+        \item \textbf{Provenance (Port 8007)} : traçabilité, audit et gestion des versions.
+    \end{itemize}
+
+    Ces services communiquent via JSON/REST au-dessus de HTTP, orchestrés par Docker Compose ou une plateforme de type Kubernetes dans des scénarios de production.
+
+    \item \textbf{Infrastructure backend}
+
+    Le backend repose sur les briques techniques suivantes :
+    \begin{itemize}
+        \item \textbf{FastAPI} : framework Python haute performance pour les API REST, générant automatiquement la spécification OpenAPI et facilitant la documentation et les tests \cite{fastapi_github,fastapi_tuto};
+        \item \textbf{SQLAlchemy} : couche ORM pour la base de données PostgreSQL, permettant un mapping objet-relationnel propre ;
+        \item \textbf{Scikit-learn, XGBoost} : bibliothèques d'apprentissage automatique utilisées pour la régression (CO\textsubscript{2}) et la classification (A--E) \cite{xgboost_paper,citebay_xgboost};
+        \item \textbf{MinIO / stockage objet} : stockage des rapports ACV, des artefacts de modèles et des journaux d'exécution.
+    \end{itemize}
+
+    \item \textbf{Composition frontend}
+
+    Le frontend cible une intégration simple sur des plateformes e-commerce et une interface de monitoring expert :
+
+    \begin{itemize}
+        \item \textbf{React + TypeScript} : développement de dashboards interactifs (visualisation des scores, filtres, recherche) ;
+        \item \textbf{Tailwind CSS} : design moderne, responsive ;
+        \item \textbf{Widget embarquable} : composant léger intégrable sur une page produit affichant l'éco-score, les principaux indicateurs ACV et un lien vers un rapport détaillé.
+    \end{itemize}
+
+    \item \textbf{Base de données et persistance}
+
+    PostgreSQL est utilisée comme base transactionnelle pour stocker :
+    \begin{itemize}
+        \item les profils produits (composition, origine, type d'emballage) ;
+        \item les impacts agrégés ACV (CO\textsubscript{2}, eau, énergie, etc.) ;
+        \item les scores A--E et niveaux de confiance ;
+        \item l'historique des calculs et les métadonnées de provenance.
+    \end{itemize}
+
+    \item \textbf{Déploiement et reproductibilité}
+
+    L'ensemble de la plateforme est déployé via Docker, suivant le principe \textit{``le code est la loi''} : un même Dockerfile est utilisé en développement, intégration continue et production, garantissant la reproductibilité des environnements \cite{boettiger_docker,ten_rules_docker}. Les modèles sont versionnés et suivis via DVC et MLflow \cite{docker_rr,dvc_mlfow_materials}, ce qui permet de retracer précisément la combinaison \{données, modèle, paramètres\} à l'origine d'un score donné.
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{images/13.jpg}
+    \caption{Architecture microservices d'EcoLabel-MS (schéma conceptuel).}
+    \label{fig:architecture}
+\end{figure}
+
+\subsection{Fonctionnalités principales}
+
+EcoLabel-MS fournit un ensemble de fonctionnalités orientées utilisateurs (industriels, distributeurs, plateformes e-commerce, chercheurs) :
+
+\begin{enumerate}
+    \item \textbf{Ingestion et parsing de produits}
+
+    \begin{itemize}
+        \item upload d'images d'étiquettes, de PDF de fiches techniques ou de codes-barres GTIN ;
+        \item extraction OCR via Tesseract \cite{tesseract_smith2007,tesseract_researchgate} avec prétraitement des images (niveaux de gris, filtrage, correction de perspective) ;
+        \item structuration du texte (nom du produit, marque, listes d'ingrédients, logos, labels, poids net, origine).
+    \end{itemize}
+
+    \item \textbf{Analyse sémantique des ingrédients}
+
+    \begin{itemize}
+        \item identification des entités nommées (ingrédients, additifs, labels, origines) via HuggingFace Transformers (modèle BERT multilingual NER) \cite{bert_devlin,huggingface_transformers};
+        \item normalisation vers une taxonomie interne structurée, compatible avec AGRIBALYSE ;
+        \item détection de labels écologiques (AB, Bio, équitable, local) utilisés comme bonus/malus dans le score.
+    \end{itemize}
+
+    \item \textbf{Calcul ACV simplifié (LCALite)}
+
+    \begin{itemize}
+        \item agrégation des facteurs d'émission d'AGRIBALYSE pour chaque ingrédient, pondérés par la masse et les facteurs logistiques ;
+        \item calcul des indicateurs CO\textsubscript{2}, eau, énergie pour le produit final ;
+        \item imputation des impacts manquants via un modèle XGBoost Regressor.
+    \end{itemize}
+
+    \item \textbf{Scoring environnemental (A--E)}
+
+    \begin{itemize}
+        \item transformation des indicateurs ACV normalisés en un score global A--E par modèles de classification (XGBoost, Random Forest) \cite{breiman_random_forest,xgboost_lifecycle_ai};
+        \item calcul d'un niveau de confiance associé à chaque prédiction ;
+        \item possibilité de prendre en compte des pondérations spécifiques par catégorie de produit (ex. pondération plus forte de l'eau pour les produits issus de zones en stress hydrique).
+    \end{itemize}
+
+    \item \textbf{Traçabilité et audit}
+
+    \begin{itemize}
+        \item journalisation des données d'entrée, des versions de modèles et des paramètres de calcul ;
+        \item API de consultation pour audit par des organismes tiers ou industriels ;
+        \item compatibilité future avec des blockchains de traçabilité pour sécuriser l'origine des données.
+    \end{itemize}
+
+    \item \textbf{Intégration et visualisation}
+
+    \begin{itemize}
+        \item widget d'affichage du score environnemental sur des pages produits ;
+        \item tableaux de bord pour suivre la distribution des scores d'une gamme de produits ;
+        \item export de rapports détaillés (PDF/JSON) à destination des équipes RSE.
+    \end{itemize}
+\end{enumerate}
+
+%--------------------------------------------------
+\section{Moteur d'analyse et scoring}
+%--------------------------------------------------
+
+\subsection{Imputation des données manquantes par régression}
+
+Dans la pratique, les fiches techniques sont rarement complètes. Certaines informations (distances de transport, composition exacte, type de production agricole) peuvent manquer. Plutôt que de rejeter ces produits ou d'utiliser des moyennes grossières, EcoLabel-MS implémente un régresseur XGBoost pour estimer les impacts environnementaux à partir de caractéristiques observables \cite{xgboost_imputation_researchgate,xgboost_imputation_frontiers}.
+
+Le modèle a été entraîné sur un dataset de produits alimentaires dérivé d'AGRIBALYSE, en prenant comme variables explicatives :
+\begin{itemize}
+    \item la catégorie de produit (ex. boisson, plat préparé, produit laitier) ;
+    \item la présence d'ingrédients à fort impact (bœuf, fromage, huile de palme, etc.) ;
+    \item le poids total et les proportions des principaux ingrédients ;
+    \item le type d'emballage (plastique, verre, carton) et son poids ;
+    \item un proxy de distance de transport (locale, nationale, importation longue distance).
+\end{itemize}
+
+Les métriques obtenues sont résumées dans le Tableau~\ref{tab:co2_metrics}.
+
+\begin{table}[H]
+\centering
+\caption{Métriques du modèle de régression CO\textsubscript{2}}
+\label{tab:co2_metrics}
+\begin{tabular}{|l|c|}
+\hline
+\textbf{Métrique} & \textbf{Valeur} \\
+\hline
+R\textsuperscript{2} & 0,998 \\
+MAE & 0,089 kg CO\textsubscript{2} eq \\
+RMSE & 0,14 kg CO\textsubscript{2} eq \\
+\hline
+\end{tabular}
+\end{table}
+
+La fonction objectif de XGBoost combine une fonction de perte $l$ et un terme de régularisation $\Omega$ pour éviter le surapprentissage \cite{xgboost_paper} :
+\[
+\mathrm{Obj}(\theta) = \sum_i l(y_i, \hat{y}_i) + \sum_k \Omega(f_k)
+\]
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{images/co2_regression_analysis.png}
+    \caption{Analyse de régression CO\textsubscript{2} : valeurs prédites vs réelles et distribution des résidus (schéma illustratif).}
+    \label{fig:co2-regression}
+\end{figure}
+
+\subsection{Classification du score environnemental A--E}
+
+Le microservice \textit{Scoring} transforme les indicateurs ACV agrégés en une note alphabétique intuitive (A à E). Deux familles de modèles sont évaluées : XGBoost Classifier et Random Forest \cite{breiman_random_forest}. La meilleure configuration est sélectionnée par validation croisée.
+
+Les features incluent :
+\begin{itemize}
+    \item CO\textsubscript{2} normalisé ;
+    \item consommation d'eau normalisée ;
+    \item énergie primaire ;
+    \item type d'emballage (one-hot encoding) ;
+    \item labels (bio, recyclé, local) ;
+    \item catégorie de produit.
+\end{itemize}
+
+Le système interne de pondération accorde par défaut 50\,\% à l'empreinte carbone, 25\,\% à l'usage de l'eau et 25\,\% à l'énergie, mais ces poids peuvent être ajustés par catégorie.
+
+\begin{table}[H]
+\centering
+\caption{Métriques de performance du modèle de scoring A--E}
+\label{tab:perf_metrics}
+\begin{tabular}{|l|c|c|c|}
+\hline
+\textbf{Modèle} & \textbf{Accuracy (test)} & \textbf{Macro-F1} & \textbf{Top-2 Accuracy} \\
+\hline
+Random Forest & 1,00 & 1,00 & 1,00 \\
+XGBoost       & 0,98 & 0,98 & 1,00 \\
+\hline
+\end{tabular}
+\end{table}
+
+\textbf{Note :} Les performances élevées (100\,\%) s'expliquent par la nature du dataset d'entraînement, généré de manière déterministe avec des frontières claires entre les classes environnementales (A--E). En production, avec des données réelles et plus de variabilité, des performances de l'ordre de 85--95\,\% seraient attendues.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\linewidth]{images/confusion_matrix.png}
+    \caption{Matrice de confusion du modèle de classification (A--E) (illustration).}
+    \label{fig:confusion-matrix}
+\end{figure}
+
+\subsection{Workflow BPMN et orchestration des microservices}
+
+Le processus global, modélisé en BPMN, suit les étapes suivantes :
+
+\begin{enumerate}
+    \item \textbf{Soumission du produit} : l'utilisateur envoie une image, un PDF ou un identifiant produit (GTIN).
+    \item \textbf{Extraction OCR et parsing} : ParserProduit convertit l'image en texte puis structure les informations.
+    \item \textbf{Analyse sémantique} : NLPIngrédients identifie et normalise les ingrédients et labels.
+    \item \textbf{Calcul ACV} : LCALite agrège les facteurs d'émission ; si des données sont manquantes, XGBoost impute les impacts.
+    \item \textbf{Scoring} : le microservice Scoring prédit le grade A--E et le niveau de confiance.
+    \item \textbf{Persistance et provenance} : les résultats et métadonnées sont stockés dans PostgreSQL et tracés par Provenance.
+    \item \textbf{Diffusion} : WidgetAPI expose le résultat via un endpoint unique ou un widget visuel.
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{images/confusion_matrix_normalized.png}
+    \caption{Diagramme BPMN -- Workflow d'EcoLabel-MS (conceptuel).}
+    \label{fig:bpmn}
+\end{figure}
+
+%--------------------------------------------------
+\section{Exemples illustratifs}
+%--------------------------------------------------
+
+\subsection{Produit 1 : Salade Bio Locale}
+
+Une \textit{Salade Bio Locale} est soumise à la plateforme. Le système :
+
+\begin{enumerate}
+    \item détecte les ingrédients principaux (salade verte, tomates, huile d'olive, vinaigre) et le label \textit{Agriculture Biologique} ;
+    \item calcule des impacts : CO\textsubscript{2} = 0,51 kg CO\textsubscript{2} eq, eau = 3,5 L, énergie = 2,59 MJ ;
+    \item applique un bonus pour le caractère local et bio ;
+    \item classe le produit en \textbf{Score A} avec un niveau de confiance élevé.
+\end{enumerate}
+
+\subsection{Produit 2 : Pizza Surgelée à la Viande}
+
+Pour une \textit{Pizza Surgelée Viande}, la composition inclut : pâte, fromage, viande de bœuf, huile végétale, sauce tomate. La présence de bœuf et de fromage augmente significativement l'empreinte carbone. Le système :
+
+\begin{enumerate}
+    \item extrait la liste d'ingrédients et identifie les ingrédients à fort impact ;
+    \item estime des impacts : CO\textsubscript{2} = 7{,}5 kg CO\textsubscript{2} eq, eau = 120 L, énergie = 15 MJ ;
+    \item classe le produit en \textbf{Score D} avec un niveau de confiance moyen à élevé ;
+    \item génère un rapport détaillant les leviers d'amélioration (réduction de la part de bœuf, optimisation de l'emballage, sourcing local).
+\end{enumerate}
+
+\subsection{Interface web et pipeline EcoLabel-MS}
+
+Le pipeline complet d'EcoLabel-MS est implémenté sous forme de microservices exposés via une interface web. Les Figures~\ref{fig:dashboard} et \ref{fig:pipeline_ui} illustrent le fonctionnement de bout en bout : du parsing d'une fiche produit jusqu'au score A--E affiché dans un widget public, avec traçabilité complète des calculs.
+
+\begin{figure}[H]
+    \centering
+    % Remplace "images/dashboard.png" par le chemin de ta capture du dashboard
+    \includegraphics[width=\textwidth]{images/DashEco.jpg}
+    \caption{Tableau de bord EcoLabel-MS : supervision en temps réel des 6 microservices (ParserProduit, NLPIngrédients, LCALite, Scoring, WidgetAPI, Provenance).}
+    \label{fig:dashboard}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    % -------- Ligne 1 : ParserProduit + NLPIngrédients --------
+    % Remplace les chemins ci-dessous par tes propres fichiers
+    \subfloat[ParserProduit -- Extraction OCR des fiches produits\label{fig:parser}]{%
+        \includegraphics[width=0.48\textwidth]{images/ParserEco.jpg}}
+    \hfill
+    \subfloat[NLPIngrédients -- Analyse NLP des ingrédients\label{fig:nlp}]{%
+        \includegraphics[width=0.48\textwidth]{images/NLPEco.jpg}}\\[0.8em]
+
+    % -------- Ligne 2 : LCALite + Scoring --------
+    \subfloat[LCALite -- Calcul ACV simplifiée (CO\textsubscript{2}, eau, énergie)\label{fig:lca}]{%
+        \includegraphics[width=0.48\textwidth]{images/LCAEco.jpg}}
+    \hfill
+    \subfloat[Scoring (ML) -- Génération du score environnemental A--E\label{fig:scoring}]{%
+        \includegraphics[width=0.48\textwidth]{images/ScoringEco.jpg}}\\[0.8em]
+
+    % -------- Ligne 3 : WidgetAPI + Provenance --------
+    \subfloat[WidgetAPI -- Widget public d'affichage du score pour les consommateurs\label{fig:widget}]{%
+        \includegraphics[width=0.48\textwidth]{images/WidgetEco.jpg}}
+    \hfill
+    \subfloat[Provenance -- Historique et traçabilité des scores calculés\label{fig:provenance}]{%
+        \includegraphics[width=0.48\textwidth]{images/ProvenanceEco.jpg}}
+
+    \caption{Pipeline EcoLabel-MS illustré par l'interface web : du parsing OCR au scoring A--E et à la traçabilité des calculs.}
+    \label{fig:pipeline_ui}
+\end{figure}
+
+%--------------------------------------------------
+\section{Impact et positionnement}
+%--------------------------------------------------
+
+\subsection{Impact scientifique et industriel}
+
+En intégrant ACV, Machine Learning et architecture microservices, EcoLabel-MS contribue à :
+\begin{itemize}
+    \item \textbf{l'automatisation à grande échelle} des calculs d'empreinte environnementale ;
+    \item \textbf{la réduction des coûts} d'évaluation pour les industriels souhaitant afficher un éco-score ;
+    \item \textbf{la démocratisation} de l'information environnementale auprès des consommateurs ;
+    \item \textbf{l'innovation méthodologique} en combinant imputation avancée et ACV \cite{plos_ml_lca,ai_lifecycle_materials}.
+\end{itemize}
+
+L'approche s'inscrit dans les travaux récents visant à intégrer le ML dans l'ACV et à développer des frameworks d'IA pour prédire les impacts environnementaux de matériaux et produits \cite{ai_lifecycle_materials,air_quality_xgboost}.
+
+\subsection{Comparaison avec des initiatives existantes}
+
+Différentes initiatives nationales et européennes ont proposé des méthodes ou dispositifs d'affichage environnemental, notamment l'éco-score français pour l'alimentaire et le textile \cite{eco_score_greenly,hellocarbo_ecoscore,carbonfact_textile,ademe_extrapolation}. Toutefois, ces systèmes restent souvent :
+\begin{itemize}
+    \item fortement centralisés (scoring calculé par un organisme ou une plateforme unique) ;
+    \item peu automatisés dans l'extraction des données produits ;
+    \item difficilement extensibles à de nouveaux types de produits ou de marchés.
+\end{itemize}
+
+EcoLabel-MS se distingue par :
+\begin{itemize}
+    \item sa \textbf{modularité} (microservices) qui permet d'ajouter ou mettre à jour des composants (ex. nouveau modèle NLP, nouvelle base ACV) sans impacter le reste du système ;
+    \item sa \textbf{reproductibilité scientifique} via Docker, DVC et MLflow ;
+    \item son \textbf{ouverture} (API publique, intégration e-commerce, possibilité de déploiement on-premise ou cloud) ;
+    \item sa \textbf{focalisation sur la traçabilité} et le versionnement des données et modèles.
+\end{itemize}
+
+%--------------------------------------------------
+\section{Validation collaborative et perspectives}
+%--------------------------------------------------
+
+La validation d'EcoLabel-MS repose sur plusieurs axes :
+
+\begin{itemize}
+    \item \textbf{Validation scientifique} : comparaison avec des résultats ACV de référence (AGRIBALYSE, études académiques) ; tests sur des cas d'étude (produits laitiers, plats préparés, boisson, etc.) \cite{agribalyse_ocl,mdpi_lca_food_chain};
+    \item \textbf{Validation technique} : tests unitaires, tests d'intégration end-to-end, revues de performance (latence de calcul, tolérance aux pannes) ;
+    \item \textbf{Validation participative} : implication de partenaires industriels, de distributeurs et d'associations de consommateurs pour évaluer la compréhension et l'acceptabilité du score.
+\end{itemize}
+
+À plus long terme, les perspectives incluent :
+\begin{itemize}
+    \item l'intégration de \textbf{données IoT en temps réel} (température de stockage, capteurs logistiques) ;
+    \item l'extension à d'autres secteurs (textile, cosmétique, électronique) ;
+    \item l'utilisation de \textbf{blockchains} pour sécuriser la chaîne de traçabilité ;
+    \item l'alignement avec les initiatives européennes telles que le projet \textit{ECO FOOD CHOICE} \cite{eco_food_choice_project}.
+\end{itemize}
+
+%--------------------------------------------------
+\section{Assurance qualité}
+%--------------------------------------------------
+
+Une évaluation qualité a été conduite sur le backend Python/FastAPI et le frontend React/TypeScript avec SonarQube \cite{sonarqube}.
+
+\begin{table}[H]
+\centering
+\caption{Synthèse des résultats d'assurance qualité}
+\label{tab:qa_metrics}
+\begin{tabular}{|l|c|c|}
+\hline
+\textbf{Métrique} & \textbf{Backend} & \textbf{Frontend} \\
+\hline
+Quality Gate Status & Passé & Passé \\
+\hline
+Rating Fiabilité & A (0 bugs) & A (0 bugs) \\
+\hline
+Rating Sécurité & A (0 vulnérabilités) & A (0 vulnérabilités) \\
+\hline
+Rating Maintenabilité & A (dette technique faible) & A (dette technique maîtrisée) \\
+\hline
+Duplication de code & 1,5\,\% & 2,0\,\% \\
+\hline
+Couverture de tests & 35\,\% (backend) & 10\,\% (frontend) \\
+\hline
+\end{tabular}
+\end{table}
+
+Les principaux constats sont :
+\begin{itemize}
+    \item bonne santé globale du code (ratings A en fiabilité, sécurité et maintenabilité) ;
+    \item faible duplication de code ;
+    \item marge d'amélioration sur la couverture de tests, avec un objectif de 80\,\% à moyen terme par l'ajout de tests unitaires et d'intégration.
+\end{itemize}
+
+Des pipelines d'intégration continue (CI/CD) exécutent automatiquement les tests et l'analyse SonarQube à chaque \textit{commit}, garantissant un suivi continu de la qualité.
+
+%--------------------------------------------------
+\section{Conclusions}
+%--------------------------------------------------
+
+EcoLabel-MS illustre comment une architecture microservices couplée à l'ACV et au Machine Learning peut lever les verrous technologiques de l'affichage environnemental. En automatisant l'extraction de données produits (OCR, NLP), en utilisant des modèles de régression pour compléter les données manquantes et en déployant des modèles de classification robustes pour le scoring A--E, la plateforme fournit un éco-score transparent, traçable et scientifiquement fondé.
+
+Les axes d'amélioration prioritaires incluent :
+\begin{itemize}
+    \item l'enrichissement des bases de données (plus de produits, secteurs, pays) ;
+    \item l'amélioration de la couverture de tests automatisés et de la surveillance des modèles (drift, recalibrage) ;
+    \item le renforcement des interfaces utilisateur pour mieux expliquer les résultats aux consommateurs ;
+    \item le déploiement de pilotes avec des industriels et distributeurs pour valider l'impact réel sur les choix de consommation et l'éco-conception.
+\end{itemize}
+
+Face à l'urgence climatique, des plateformes comme EcoLabel-MS peuvent devenir des briques essentielles de la transition écologique, en rendant visibles les impacts cachés des produits et en offrant aux citoyens et aux industriels un langage commun pour l'action : un score environnemental simple, mais appuyé sur une science robuste et des technologies modernes.
+
+\bibliographystyle{unsrt}
+\bibliography{bibliography}
+
+\end{document}

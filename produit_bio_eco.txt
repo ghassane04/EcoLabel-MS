@@ -1,0 +1,20 @@
+FICHE PRODUIT - Salade Bio Locale
+==========================================
+
+Code-barres (GTIN): 1234567890123
+
+INGRÉDIENTS:
+- Salade verte bio locale (95%)
+- Huile d'olive bio (5%)
+
+EMBALLAGE:
+- Matériau: Papier recyclable
+- Poids: 50g
+
+TRANSPORT:
+- Distance: 50 km
+- Mode: Vélo cargo
+
+LABELS:
+- Agriculture Biologique (AB)
+- Local France

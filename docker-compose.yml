@@ -1,8 +1,15 @@
+# EcoLabel-MS - Docker Compose (Simplified)
+# Commande: docker-compose up -d
+# Frontend: http://localhost:3000
+# All microservices run in Docker containers
 
 services:
+  # ===========================================
+  # DATABASE
+  # ===========================================
   postgres:
     image: postgres:15
-    container_name: postgres
+    container_name: ecolabel-postgres
     environment:
       POSTGRES_USER: eco
       POSTGRES_PASSWORD: eco_pass
@@ -10,115 +17,130 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U eco -d eco_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
-  minio:
-    image: minio/minio
-    container_name: minio
-    environment:
-      MINIO_ACCESS_KEY: minio
-      MINIO_SECRET_KEY: minio123
-    command: server /data
-    ports:
-      - "9000:9000"
-    volumes:
-      - minio-data:/data
-
+  # ===========================================
+  # MICROSERVICE 1: ParserProduit (Port 8001)
+  # ===========================================
   parser-produit:
     build: ./parser-produit
-    image: parser-produit:latest
-    container_name: parser-produit
+    container_name: ecolabel-parser
     ports:
-      - "8001:8001"
+      - "8001:8000"
     environment:
       - DB_HOST=postgres
+      - DB_PORT=5432
       - DB_USER=eco
       - DB_PASSWORD=eco_pass
       - DB_NAME=eco_db
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
 
+  # ===========================================
+  # MICROSERVICE 2: NLPIngredients (Port 8002)
+  # ===========================================
   nlp-ingredients:
     build: ./nlp-ingredients
-    image: nlp-ingredients:latest
-    container_name: nlp-ingredients
+    container_name: ecolabel-nlp
     ports:
-      - "8002:8002"
+      - "8002:8000"
     environment:
       - DB_HOST=postgres
+      - DB_PORT=5432
       - DB_USER=eco
       - DB_PASSWORD=eco_pass
       - DB_NAME=eco_db
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
 
+  # ===========================================
+  # MICROSERVICE 3: LCALite (Port 8003)
+  # ===========================================
   lca-lite:
     build: ./lca-lite
-    image: lca-lite:latest
-    container_name: lca-lite
+    container_name: ecolabel-lca
     ports:
-      - "8003:8003"
+      - "8003:8000"
     environment:
       - DB_HOST=postgres
+      - DB_PORT=5432
       - DB_USER=eco
       - DB_PASSWORD=eco_pass
       - DB_NAME=eco_db
-      - MINIO_ENDPOINT=minio:9000
-      - MINIO_ACCESS_KEY=minio
-      - MINIO_SECRET_KEY=minio123
     depends_on:
-      - postgres
-      - minio
+      postgres:
+        condition: service_healthy
 
+  # ===========================================
+  # MICROSERVICE 4: Scoring (Port 8004)
+  # ===========================================
   scoring:
     build: ./scoring
-    image: scoring:latest
-    container_name: scoring
+    container_name: ecolabel-scoring
     ports:
-      - "8004:8004"
+      - "8004:8000"
     environment:
       - DB_HOST=postgres
+      - DB_PORT=5432
       - DB_USER=eco
       - DB_PASSWORD=eco_pass
       - DB_NAME=eco_db
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
 
+  # ===========================================
+  # MICROSERVICE 5: WidgetAPI (Port 8005)
+  # ===========================================
   widget-api:
     build: ./widget-api/backend
-    image: widget-api:latest
-    container_name: widget-api
+    container_name: ecolabel-widget-api
     ports:
-      - "8005:8005"
+      - "8005:8000"
     environment:
       - DB_HOST=postgres
+      - DB_PORT=5432
       - DB_USER=eco
       - DB_PASSWORD=eco_pass
       - DB_NAME=eco_db
     depends_on:
-      - postgres
-      - scoring
+      postgres:
+        condition: service_healthy
 
-  widget-ui:
+  # ===========================================
+  # MICROSERVICE 6: Provenance (Port 8007)
+  # ===========================================
+  provenance:
+    build: ./provenance
+    container_name: ecolabel-provenance
+    ports:
+      - "8007:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+
+  # ===========================================
+  # FRONTEND (Port 3000)
+  # ===========================================
+  frontend:
     build: ./front
-    image: widget-ui:latest
-    container_name: widget-ui
+    container_name: ecolabel-frontend
     ports:
       - "3000:3000"
     depends_on:
+      - parser-produit
+      - nlp-ingredients
+      - lca-lite
+      - scoring
       - widget-api
 
-  provenance:
-    build: ./provenance
-    image: provenance:latest
-    container_name: provenance
-    ports:
-      - "8006:8006"
-    environment:
-      - MLFLOW_TRACKING_URI=file:///app/mlruns
-    depends_on:
-      - minio
-
 volumes:
-  pgdata:
-  minio-data:
+  postgres_data:

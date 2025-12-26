@@ -1,10 +1,10 @@
-import { 
-  LayoutDashboard, 
-  FileText, 
-  BrainCircuit, 
-  Leaf, 
-  Award, 
-  Globe, 
+import {
+  LayoutDashboard,
+  FileText,
+  BrainCircuit,
+  Leaf,
+  Award,
+  Globe,
   Database,
   Activity
 } from 'lucide-react';
@@ -21,7 +21,7 @@ const menuItems = [
   { id: 'parser' as Page, label: 'ParserProduit', icon: FileText },
   { id: 'nlp' as Page, label: 'NLPIngrédients', icon: BrainCircuit },
   { id: 'lca' as Page, label: 'LCALite', icon: Leaf },
-  { id: 'scoring' as Page, label: 'Scoring', icon: Award },
+  { id: 'scoring' as Page, label: 'Scoring (ML)', icon: Award, highlight: true },
   { id: 'widget' as Page, label: 'WidgetAPI', icon: Globe },
   { id: 'provenance' as Page, label: 'Provenance', icon: Database },
 ];
@@ -33,7 +33,7 @@ export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
         <div className="flex items-center gap-3">
           <Activity className="w-8 h-8 text-emerald-400" />
           <div>
-            <h1 className="text-white">EcoLabel-MS</h1>
+            <h1 className="text-white font-bold text-lg">EcoLabel-MS</h1>
             <p className="text-emerald-300 text-xs">Microservices Platform</p>
           </div>
         </div>
@@ -44,19 +44,24 @@ export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
           {menuItems.map((item) => {
             const Icon = item.icon;
             const isActive = currentPage === item.id;
-            
+            const isHighlight = (item as any).highlight;
+
             return (
               <button
                 key={item.id}
                 onClick={() => onNavigate(item.id)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-                  isActive
-                    ? 'bg-emerald-700 text-white shadow-lg'
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${isActive
+                  ? 'bg-emerald-700 text-white shadow-lg'
+                  : isHighlight
+                    ? 'text-purple-200 hover:bg-purple-800/50 border border-purple-500/30'
                     : 'text-emerald-100 hover:bg-emerald-800/50'
-                }`}
+                  }`}
               >
-                <Icon className="w-5 h-5" />
+                <Icon className={`w-5 h-5 ${isHighlight && !isActive ? 'text-purple-400' : ''}`} />
                 <span>{item.label}</span>
+                {isHighlight && (
+                  <span className="ml-auto text-xs bg-purple-600 px-2 py-0.5 rounded">ML</span>
+                )}
               </button>
             );
           })}
@@ -69,7 +74,7 @@ export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
             <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
             <span className="text-xs">Système opérationnel</span>
           </div>
-          <p className="text-xs text-emerald-400">6/6 services actifs</p>
+          <p className="text-xs text-emerald-400">6 microservices</p>
         </div>
       </div>
     </aside>
