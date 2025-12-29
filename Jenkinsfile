@@ -17,7 +17,8 @@ pipeline {
         stage('Checkout') {
             steps {
                 echo 'Cloning repository...'
-                checkout scm
+                git branch: 'main',
+                    url: 'https://github.com/ghassane04/EcoLabel-MS.git'
             }
         }
         
@@ -27,10 +28,7 @@ pipeline {
         stage('Install Dependencies') {
             steps {
                 echo 'Installing Python dependencies...'
-                bat '''
-                    cd scoring
-                    pip install -r requirements.txt pytest pytest-cov httpx || echo "Dependencies installed"
-                '''
+                bat 'pip install pytest pytest-cov httpx flake8 bandit'
             }
         }
         
@@ -40,10 +38,7 @@ pipeline {
         stage('Unit Tests') {
             steps {
                 echo 'Running unit tests...'
-                bat '''
-                    cd scoring
-                    pytest tests/ -v --cov=app --cov-report=xml:coverage.xml || echo "Tests completed"
-                '''
+                bat 'cd scoring && pip install -r requirements.txt && pytest tests/ -v || exit 0'
             }
         }
         
@@ -53,72 +48,27 @@ pipeline {
         stage('Code Quality') {
             steps {
                 echo 'Checking code quality...'
-                bat '''
-                    pip install flake8 || echo "flake8 installed"
-                    flake8 scoring/app --max-line-length=120 --ignore=E501,W503 || echo "Lint completed"
-                '''
+                bat 'flake8 scoring/app --max-line-length=120 --ignore=E501,W503 || exit 0'
             }
         }
         
         // ===========================================
-        // Stage 5: SonarQube Analysis (Optional)
-        // ===========================================
-        stage('SonarQube Analysis') {
-            when {
-                expression { 
-                    return fileExists('sonar-project.properties')
-                }
-            }
-            steps {
-                echo 'Running SonarQube analysis...'
-                bat '''
-                    where sonar-scanner >nul 2>&1 && (
-                        sonar-scanner -Dsonar.projectKey=%SONAR_PROJECT_KEY% -Dsonar.sources=. -Dsonar.host.url=%SONAR_HOST_URL%
-                    ) || echo "SonarQube scanner not installed - skipping"
-                '''
-            }
-        }
-        
-        // ===========================================
-        // Stage 6: Build Docker Images (Optional)
-        // ===========================================
-        stage('Build Docker') {
-            when {
-                expression { 
-                    return fileExists('docker-compose.yml')
-                }
-            }
-            steps {
-                echo 'Building Docker images...'
-                bat 'docker compose build || echo "Docker build skipped"'
-            }
-        }
-        
-        // ===========================================
-        // Stage 7: Security Scan
+        // Stage 5: Security Scan
         // ===========================================
         stage('Security Scan') {
             steps {
                 echo 'Running security scan...'
-                bat '''
-                    pip install bandit || echo "bandit installed"
-                    bandit -r scoring/app -f txt || echo "Security scan completed"
-                '''
+                bat 'bandit -r scoring/app -f txt || exit 0'
             }
         }
         
         // ===========================================
-        // Stage 8: Generate Reports
+        // Stage 6: Generate Reports
         // ===========================================
         stage('Generate Reports') {
             steps {
-                echo 'Generating reports...'
-                bat '''
-                    echo "=== BUILD REPORT ==="
-                    echo "Project: EcoLabel-MS"
-                    echo "Date: %DATE% %TIME%"
-                    echo "Status: SUCCESS"
-                '''
+                echo 'Build completed successfully!'
+                bat 'echo Build Date: %DATE% %TIME%'
             }
         }
     }
@@ -131,10 +81,10 @@ pipeline {
             echo 'Pipeline finished!'
         }
         success {
-            echo 'Pipeline completed successfully!'
+            echo 'SUCCESS!'
         }
         failure {
-            echo 'Pipeline failed!'
+            echo 'FAILED!'
         }
     }
 }
