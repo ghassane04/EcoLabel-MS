@@ -1,0 +1,83 @@
+# ===========================================
+# EcoLabel-MS - CI/CD Docker Compose
+# Includes SonarQube and Jenkins
+# ===========================================
+
+version: '3.8'
+
+services:
+  # ===========================================
+  # SonarQube - Code Quality Analysis
+  # ===========================================
+  sonarqube:
+    image: sonarqube:lts-community
+    container_name: ecolabel-sonarqube
+    ports:
+      - "9000:9000"
+    environment:
+      - SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_logs:/opt/sonarqube/logs
+      - sonarqube_extensions:/opt/sonarqube/extensions
+    networks:
+      - ecolabel-ci
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/api/system/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # ===========================================
+  # Jenkins - CI/CD Server
+  # ===========================================
+  jenkins:
+    image: jenkins/jenkins:lts
+    container_name: ecolabel-jenkins
+    privileged: true
+    user: root
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - JAVA_OPTS=-Djenkins.install.runSetupWizard=false
+    networks:
+      - ecolabel-ci
+    depends_on:
+      - sonarqube
+
+  # ===========================================
+  # SonarScanner - For Analysis
+  # ===========================================
+  sonar-scanner:
+    image: sonarsource/sonar-scanner-cli:latest
+    container_name: ecolabel-sonar-scanner
+    volumes:
+      - .:/usr/src
+    environment:
+      - SONAR_HOST_URL=http://sonarqube:9000
+    networks:
+      - ecolabel-ci
+    depends_on:
+      - sonarqube
+    profiles:
+      - scan
+
+# ===========================================
+# Networks
+# ===========================================
+networks:
+  ecolabel-ci:
+    driver: bridge
+
+# ===========================================
+# Volumes
+# ===========================================
+volumes:
+  sonarqube_data:
+  sonarqube_logs:
+  sonarqube_extensions:
+  jenkins_home:
