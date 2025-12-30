@@ -59,6 +59,20 @@ jobs:
         with:
           fetch-depth: 0
       
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: 📦 Install dependencies and generate coverage
+        run: |
+          pip install pytest pytest-cov httpx
+          # Generate coverage for scoring
+          cd scoring && pip install -r requirements.txt && pytest tests/ --cov=app --cov-report=xml:coverage.xml || true
+          cd ..
+          # Generate coverage for lca-lite
+          cd lca-lite && pip install -r requirements.txt && pytest tests/ --cov=app --cov-report=xml:coverage.xml || true
+      
       - name: 🔍 SonarCloud Scan
         uses: SonarSource/sonarqube-scan-action@v6
         env:
