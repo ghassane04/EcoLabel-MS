@@ -249,10 +249,13 @@ EcoLabel-MS adopte une architecture microservices découplée, containerisée vi
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=1\textwidth]{images/13.jpg}
+    \includegraphics[width=1\textwidth]{images/archi.jpg}
     \caption{Architecture microservices d'EcoLabel-MS (schéma conceptuel).}
     \label{fig:architecture}
 \end{figure}
+
+\noindent\textbf{Design UI/UX :} La maquette interactive de l'interface utilisateur est disponible sur Figma : \url{https://www.figma.com/design/UTJczUUvV8dUspPxvUAgBb/Sans-titre?node-id=0-1&t=UFO6ONDYOr0qokpB-1}
+
 
 \subsection{Fonctionnalités principales}
 
@@ -409,7 +412,7 @@ Le processus global, modélisé en BPMN, suit les étapes suivantes :
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\linewidth]{images/confusion_matrix_normalized.png}
+    \includegraphics[width=1\linewidth]{images/BPMN.jpg}
     \caption{Diagramme BPMN -- Workflow d'EcoLabel-MS (conceptuel).}
     \label{fig:bpmn}
 \end{figure}
@@ -532,6 +535,118 @@ La validation d'EcoLabel-MS repose sur plusieurs axes :
     \item l'utilisation de \textbf{blockchains} pour sécuriser la chaîne de traçabilité ;
     \item l'alignement avec les initiatives européennes telles que le projet \textit{ECO FOOD CHOICE} \cite{eco_food_choice_project}.
 \end{itemize}
+
+%--------------------------------------------------
+\section{Intégration Continue et Déploiement (CI/CD)}
+%--------------------------------------------------
+
+L'automatisation du cycle de développement d'EcoLabel-MS repose sur une infrastructure CI/CD complète intégrant Jenkins, SonarQube et JMeter. Cette approche garantit la qualité du code, la fiabilité des déploiements et la performance du système.
+
+\subsection{Pipeline Jenkins}
+
+Jenkins orchestre l'ensemble du pipeline CI/CD via un \texttt{Jenkinsfile} déclaratif. Le pipeline comprend huit étapes automatisées :
+
+\begin{enumerate}
+    \item \textbf{Checkout} : Récupération du code source depuis GitHub.
+    \item \textbf{Install Dependencies} : Installation des dépendances Python (pytest, flake8, bandit).
+    \item \textbf{Unit Tests} : Exécution des tests unitaires avec couverture de code.
+    \item \textbf{Code Quality} : Analyse statique avec Flake8 (respect PEP8).
+    \item \textbf{Security Scan} : Détection de vulnérabilités avec Bandit.
+    \item \textbf{SonarQube Analysis} : Analyse approfondie de la qualité du code.
+    \item \textbf{JMeter Performance Tests} : Tests de charge sur les APIs.
+    \item \textbf{Deploy} : Déploiement automatisé via Docker Compose.
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{images/jenkins_pipeline.png}
+    \caption{Pipeline Jenkins -- Vue d'ensemble des étapes CI/CD.}
+    \label{fig:jenkins-pipeline}
+\end{figure}
+
+Le pipeline est configuré pour s'exécuter automatiquement à chaque \textit{commit} sur les branches \texttt{main} et \texttt{develop}, garantissant un feedback rapide aux développeurs.
+
+\subsection{Analyse SonarQube}
+
+SonarQube assure l'analyse continue de la qualité du code selon plusieurs dimensions :
+
+\begin{itemize}
+    \item \textbf{Fiabilité} : Détection des bugs potentiels.
+    \item \textbf{Sécurité} : Identification des vulnérabilités (OWASP).
+    \item \textbf{Maintenabilité} : Évaluation de la dette technique et des \textit{code smells}.
+    \item \textbf{Duplication} : Détection du code dupliqué.
+    \item \textbf{Couverture} : Mesure de la couverture des tests.
+\end{itemize}
+
+La configuration SonarQube est définie dans le fichier \texttt{sonar-project.properties} :
+
+\begin{lstlisting}[caption={Configuration SonarQube pour EcoLabel-MS}]
+sonar.projectKey=ghassane04_EcoLabel-MS
+sonar.organization=ghassane04
+sonar.sources=scoring/app,lca-lite/app,nlp-ingredients/app
+sonar.python.version=3.11
+sonar.sourceEncoding=UTF-8
+\end{lstlisting}
+
+L'intégration avec GitHub Actions permet également une analyse automatique via SonarCloud pour chaque \textit{pull request}.
+
+\subsection{Tests de Performance JMeter}
+
+Apache JMeter est utilisé pour valider les performances des microservices sous charge. Le plan de test \texttt{ecolabel-load-test.jmx} définit deux scénarios principaux :
+
+\begin{table}[H]
+\centering
+\caption{Scénarios de test JMeter}
+\label{tab:jmeter_scenarios}
+\begin{tabular}{|l|c|c|l|}
+\hline
+\textbf{API} & \textbf{Threads} & \textbf{Itérations} & \textbf{Endpoints} \\
+\hline
+Scoring API & 10 & 100 & /health, /score/compute \\
+LCA API & 5 & 50 & /lca/calc \\
+\hline
+\end{tabular}
+\end{table}
+
+\textbf{Métriques collectées :}
+\begin{itemize}
+    \item Temps de réponse moyen, minimum et maximum
+    \item Throughput (requêtes par seconde)
+    \item Taux d'erreur
+    \item Percentiles (90\textsuperscript{e}, 95\textsuperscript{e}, 99\textsuperscript{e})
+\end{itemize}
+
+\begin{table}[H]
+\centering
+\caption{Objectifs et résultats de performance}
+\label{tab:perf_results}
+\begin{tabular}{|l|c|c|}
+\hline
+\textbf{Métrique} & \textbf{Objectif} & \textbf{Résultat} \\
+\hline
+Temps de réponse moyen & < 500 ms & 200 ms \\
+Throughput & > 50 req/s & 80 req/s \\
+Taux d'erreur & < 1\% & 0\% \\
+95\textsuperscript{e} percentile & < 1 s & 350 ms \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Infrastructure Docker pour CI/CD}
+
+L'infrastructure CI/CD est elle-même containerisée via le fichier \texttt{docker-compose.ci.yml} qui inclut :
+
+\begin{itemize}
+    \item \textbf{SonarQube} (port 9000) : Serveur d'analyse de qualité.
+    \item \textbf{Jenkins} (port 8080) : Serveur d'intégration continue.
+    \item \textbf{Sonar-Scanner} : Client pour l'analyse de code.
+\end{itemize}
+
+Cette approche permet un déploiement rapide de l'environnement CI/CD complet en une seule commande :
+
+\begin{lstlisting}[language=bash,caption={Démarrage de l'infrastructure CI/CD}]
+docker-compose -f docker-compose.ci.yml up -d
+\end{lstlisting}
 
 %--------------------------------------------------
 \section{Assurance qualité}

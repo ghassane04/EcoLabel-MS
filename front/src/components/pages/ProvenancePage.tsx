@@ -98,7 +98,7 @@ export function ProvenancePage() {
   const getScoreColor = (letter: string) => {
     const colors: Record<string, string> = {
       'A': 'bg-emerald-500',
-      'B': 'bg-green-500',
+      'B': 'bg-green-600',
       'C': 'bg-yellow-500',
       'D': 'bg-orange-500',
       'E': 'bg-red-500'
@@ -121,8 +121,8 @@ export function ProvenancePage() {
             key={tab}
             onClick={() => setActiveTab(tab as any)}
             className={`px-4 py-2 rounded-lg transition-colors ${activeTab === tab
-                ? 'bg-purple-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              ? 'bg-purple-600 text-white'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
           >
             {tab === 'stats' && 'Statistiques'}

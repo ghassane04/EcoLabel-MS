@@ -102,101 +102,58 @@ class AuditResult(BaseModel):
     data_source: str
 
 
-@app.get("/provenance/{score_id}")
-def get_provenance(score_id: str):
-    """Get provenance data for a score ID"""
+# =====================================================
+# IMPORTANT: Specific routes MUST come BEFORE generic routes
+# =====================================================
+
+@app.get("/provenance/stats")
+def get_stats():
+    """Get statistics from all microservices data"""
     if engine is None:
         raise HTTPException(status_code=503, detail="Database not connected")
     
     try:
         with engine.connect() as conn:
-            # Get score from product_scores
-            result = conn.execute(
-                text("SELECT id, product_name, score_numerical, score_letter, confidence_level, created_at FROM product_scores WHERE id = :id"),
-                {"id": int(score_id)}
-            )
-            score_row = result.fetchone()
+            stats = {}
             
-            if not score_row:
-                raise HTTPException(status_code=404, detail=f"Score ID {score_id} not found")
-            
-            score_data = {
-                "id": score_row[0],
-                "product_name": score_row[1],
-                "score_numerical": float(score_row[2]) if score_row[2] else 0,
-                "score_letter": score_row[3],
-                "confidence_level": float(score_row[4]) if score_row[4] else 0,
-                "created_at": str(score_row[5]) if score_row[5] else None
+            # Product scores stats
+            result = conn.execute(text("SELECT COUNT(*), AVG(score_numerical) FROM product_scores"))
+            row = result.fetchone()
+            stats["scores"] = {
+                "count": row[0] if row[0] else 0,
+                "avg_score": round(float(row[1]), 2) if row[1] else 0
             }
             
-            # Try to find matching LCA result
-            lca_result = conn.execute(
-                text("SELECT id, product_name, total_co2, total_water, total_energy, details, created_at FROM lca_results WHERE product_name = :name ORDER BY id DESC LIMIT 1"),
-                {"name": score_data["product_name"]}
-            )
-            lca_row = lca_result.fetchone()
+            # Score distribution
+            result = conn.execute(text("""
+                SELECT score_letter, COUNT(*) as count 
+                FROM product_scores 
+                GROUP BY score_letter 
+                ORDER BY score_letter
+            """))
+            stats["score_distribution"] = {row[0]: row[1] for row in result.fetchall()}
             
-            lca_data = None
-            if lca_row:
-                lca_data = {
-                    "id": lca_row[0],
-                    "product_name": lca_row[1],
-                    "total_co2": float(lca_row[2]) if lca_row[2] else 0,
-                    "total_water": float(lca_row[3]) if lca_row[3] else 0,
-                    "total_energy": float(lca_row[4]) if lca_row[4] else 0,
-                    "details": lca_row[5] if lca_row[5] else None,
-                    "created_at": str(lca_row[6]) if lca_row[6] else None
-                }
-            
-            return {
-                "score": score_data,
-                "lca": lca_data,
-                "audit_timestamp": datetime.now().isoformat(),
-                "data_source": "PostgreSQL"
+            # LCA results stats
+            result = conn.execute(text("SELECT COUNT(*), AVG(total_co2), AVG(total_water), AVG(total_energy) FROM lca_results"))
+            row = result.fetchone()
+            stats["lca"] = {
+                "count": row[0] if row[0] else 0,
+                "avg_co2": round(float(row[1]), 3) if row[1] else 0,
+                "avg_water": round(float(row[2]), 2) if row[2] else 0,
+                "avg_energy": round(float(row[3]), 2) if row[3] else 0
             }
             
-    except HTTPException:
-        raise
-    except Exception as e:
-        print(f"Error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@app.get("/provenance/search/{product_name}")
-def search_by_product(product_name: str):
-    """Search scores by product name"""
-    if engine is None:
-        raise HTTPException(status_code=503, detail="Database not connected")
-    
-    try:
-        with engine.connect() as conn:
-            result = conn.execute(
-                text("""
-                    SELECT id, product_name, score_numerical, score_letter, confidence_level, created_at 
-                    FROM product_scores 
-                    WHERE LOWER(product_name) LIKE LOWER(:name)
-                    ORDER BY created_at DESC
-                    LIMIT 20
-                """),
-                {"name": f"%{product_name}%"}
-            )
+            # Products parsed
+            result = conn.execute(text("SELECT COUNT(*) FROM product_raw"))
+            row = result.fetchone()
+            stats["products_parsed"] = row[0] if row[0] else 0
             
-            scores = []
-            for row in result.fetchall():
-                scores.append({
-                    "id": row[0],
-                    "product_name": row[1],
-                    "score_numerical": float(row[2]) if row[2] else 0,
-                    "score_letter": row[3],
-                    "confidence_level": float(row[4]) if row[4] else 0,
-                    "created_at": str(row[5]) if row[5] else None
-                })
+            # Emission factors
+            result = conn.execute(text("SELECT COUNT(*) FROM emission_factors"))
+            row = result.fetchone()
+            stats["emission_factors"] = row[0] if row[0] else 0
             
-            return {
-                "query": product_name,
-                "count": len(scores),
-                "results": scores
-            }
+            return stats
             
     except Exception as e:
         print(f"Error: {e}")
@@ -281,55 +238,106 @@ def get_lca_history(limit: int = 20):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.get("/provenance/stats")
-def get_stats():
-    """Get statistics from all microservices data"""
+@app.get("/provenance/search/{product_name}")
+def search_by_product(product_name: str):
+    """Search scores by product name"""
     if engine is None:
         raise HTTPException(status_code=503, detail="Database not connected")
     
     try:
         with engine.connect() as conn:
-            stats = {}
+            result = conn.execute(
+                text("""
+                    SELECT id, product_name, score_numerical, score_letter, confidence_level, created_at 
+                    FROM product_scores 
+                    WHERE LOWER(product_name) LIKE LOWER(:name)
+                    ORDER BY created_at DESC
+                    LIMIT 20
+                """),
+                {"name": f"%{product_name}%"}
+            )
             
-            # Product scores stats
-            result = conn.execute(text("SELECT COUNT(*), AVG(score_numerical) FROM product_scores"))
-            row = result.fetchone()
-            stats["scores"] = {
-                "count": row[0] if row[0] else 0,
-                "avg_score": round(float(row[1]), 2) if row[1] else 0
+            scores = []
+            for row in result.fetchall():
+                scores.append({
+                    "id": row[0],
+                    "product_name": row[1],
+                    "score_numerical": float(row[2]) if row[2] else 0,
+                    "score_letter": row[3],
+                    "confidence_level": float(row[4]) if row[4] else 0,
+                    "created_at": str(row[5]) if row[5] else None
+                })
+            
+            return {
+                "query": product_name,
+                "count": len(scores),
+                "results": scores
             }
             
-            # Score distribution
-            result = conn.execute(text("""
-                SELECT score_letter, COUNT(*) as count 
-                FROM product_scores 
-                GROUP BY score_letter 
-                ORDER BY score_letter
-            """))
-            stats["score_distribution"] = {row[0]: row[1] for row in result.fetchall()}
+    except Exception as e:
+        print(f"Error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# =====================================================
+# Generic route MUST be LAST (catches all numeric IDs)
+# =====================================================
+
+@app.get("/provenance/{score_id}")
+def get_provenance(score_id: str):
+    """Get provenance data for a score ID"""
+    if engine is None:
+        raise HTTPException(status_code=503, detail="Database not connected")
+    
+    try:
+        with engine.connect() as conn:
+            # Get score from product_scores
+            result = conn.execute(
+                text("SELECT id, product_name, score_numerical, score_letter, confidence_level, created_at FROM product_scores WHERE id = :id"),
+                {"id": int(score_id)}
+            )
+            score_row = result.fetchone()
             
-            # LCA results stats
-            result = conn.execute(text("SELECT COUNT(*), AVG(total_co2), AVG(total_water), AVG(total_energy) FROM lca_results"))
-            row = result.fetchone()
-            stats["lca"] = {
-                "count": row[0] if row[0] else 0,
-                "avg_co2": round(float(row[1]), 3) if row[1] else 0,
-                "avg_water": round(float(row[2]), 2) if row[2] else 0,
-                "avg_energy": round(float(row[3]), 2) if row[3] else 0
+            if not score_row:
+                raise HTTPException(status_code=404, detail=f"Score ID {score_id} not found")
+            
+            score_data = {
+                "id": score_row[0],
+                "product_name": score_row[1],
+                "score_numerical": float(score_row[2]) if score_row[2] else 0,
+                "score_letter": score_row[3],
+                "confidence_level": float(score_row[4]) if score_row[4] else 0,
+                "created_at": str(score_row[5]) if score_row[5] else None
             }
             
-            # Products parsed
-            result = conn.execute(text("SELECT COUNT(*) FROM product_raw"))
-            row = result.fetchone()
-            stats["products_parsed"] = row[0] if row[0] else 0
+            # Try to find matching LCA result
+            lca_result = conn.execute(
+                text("SELECT id, product_name, total_co2, total_water, total_energy, details, created_at FROM lca_results WHERE product_name = :name ORDER BY id DESC LIMIT 1"),
+                {"name": score_data["product_name"]}
+            )
+            lca_row = lca_result.fetchone()
             
-            # Emission factors
-            result = conn.execute(text("SELECT COUNT(*) FROM emission_factors"))
-            row = result.fetchone()
-            stats["emission_factors"] = row[0] if row[0] else 0
+            lca_data = None
+            if lca_row:
+                lca_data = {
+                    "id": lca_row[0],
+                    "product_name": lca_row[1],
+                    "total_co2": float(lca_row[2]) if lca_row[2] else 0,
+                    "total_water": float(lca_row[3]) if lca_row[3] else 0,
+                    "total_energy": float(lca_row[4]) if lca_row[4] else 0,
+                    "details": lca_row[5] if lca_row[5] else None,
+                    "created_at": str(lca_row[6]) if lca_row[6] else None
+                }
             
-            return stats
+            return {
+                "score": score_data,
+                "lca": lca_data,
+                "audit_timestamp": datetime.now().isoformat(),
+                "data_source": "PostgreSQL"
+            }
             
+    except HTTPException:
+        raise
     except Exception as e:
         print(f"Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))

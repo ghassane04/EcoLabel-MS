@@ -1,182 +1,66 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<jmeterTestPlan version="1.2" properties="5.0" jmeter="5.6.2">
+<jmeterTestPlan version="1.2" properties="5.0" jmeter="5.6.3">
   <hashTree>
     <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="EcoLabel-MS Load Test" enabled="true">
-      <stringProp name="TestPlan.comments">Tests de charge pour les microservices EcoLabel-MS</stringProp>
+      <stringProp name="TestPlan.comments">Tests de charge pour EcoLabel-MS</stringProp>
       <boolProp name="TestPlan.functional_mode">false</boolProp>
-      <boolProp name="TestPlan.tearDown_on_shutdown">true</boolProp>
       <boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
-      <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
-        <collectionProp name="Arguments.arguments">
-          <elementProp name="BASE_URL" elementType="Argument">
-            <stringProp name="Argument.name">BASE_URL</stringProp>
-            <stringProp name="Argument.value">localhost</stringProp>
-          </elementProp>
-          <elementProp name="SCORING_PORT" elementType="Argument">
-            <stringProp name="Argument.name">SCORING_PORT</stringProp>
-            <stringProp name="Argument.value">8004</stringProp>
-          </elementProp>
-          <elementProp name="LCA_PORT" elementType="Argument">
-            <stringProp name="Argument.name">LCA_PORT</stringProp>
-            <stringProp name="Argument.value">8003</stringProp>
-          </elementProp>
-          <elementProp name="NLP_PORT" elementType="Argument">
-            <stringProp name="Argument.name">NLP_PORT</stringProp>
-            <stringProp name="Argument.value">8002</stringProp>
-          </elementProp>
-        </collectionProp>
+      <elementProp name="TestPlan.user_defined_variables" elementType="Arguments">
+        <collectionProp name="Arguments.arguments"/>
       </elementProp>
-      <stringProp name="TestPlan.user_define_classpath"></stringProp>
     </TestPlan>
     <hashTree>
-      <!-- ================================================= -->
-      <!-- Thread Group: Scoring API Load Test -->
-      <!-- ================================================= -->
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Scoring API - Load Test" enabled="true">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Scoring API Test" enabled="true">
         <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
-        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController">
           <boolProp name="LoopController.continue_forever">false</boolProp>
-          <stringProp name="LoopController.loops">100</stringProp>
+          <stringProp name="LoopController.loops">10</stringProp>
         </elementProp>
-        <stringProp name="ThreadGroup.num_threads">10</stringProp>
-        <stringProp name="ThreadGroup.ramp_time">10</stringProp>
+        <stringProp name="ThreadGroup.num_threads">5</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">5</stringProp>
         <boolProp name="ThreadGroup.scheduler">false</boolProp>
-        <stringProp name="ThreadGroup.duration"></stringProp>
-        <stringProp name="ThreadGroup.delay"></stringProp>
       </ThreadGroup>
       <hashTree>
-        <!-- Health Check -->
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Scoring - Health Check" enabled="true">
-          <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Health Check Scoring" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
             <collectionProp name="Arguments.arguments"/>
           </elementProp>
-          <stringProp name="HTTPSampler.domain">${BASE_URL}</stringProp>
-          <stringProp name="HTTPSampler.port">${SCORING_PORT}</stringProp>
+          <stringProp name="HTTPSampler.domain">localhost</stringProp>
+          <stringProp name="HTTPSampler.port">8004</stringProp>
           <stringProp name="HTTPSampler.protocol">http</stringProp>
           <stringProp name="HTTPSampler.path">/health</stringProp>
           <stringProp name="HTTPSampler.method">GET</stringProp>
           <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
           <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
         </HTTPSamplerProxy>
-        <hashTree>
-          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Assert HTTP 200" enabled="true">
-            <collectionProp name="Asserion.test_strings">
-              <stringProp name="49586">200</stringProp>
-            </collectionProp>
-            <stringProp name="Assertion.custom_message"></stringProp>
-            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
-            <boolProp name="Assertion.assume_success">false</boolProp>
-            <intProp name="Assertion.test_type">8</intProp>
-          </ResponseAssertion>
-        </hashTree>
-        
-        <!-- Compute Score -->
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Scoring - Compute Score" enabled="true">
-          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+        <hashTree/>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Health Check LCA" enabled="true">
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
-            <collectionProp name="Arguments.arguments">
-              <elementProp name="" elementType="HTTPArgument">
-                <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                <stringProp name="Argument.value">{
-  "product_name": "Sauce Tomate Bio Test",
-  "total_co2": ${__Random(0.5,5.0)},
-  "total_water": ${__Random(20,100)},
-  "total_energy": ${__Random(1,10)},
-  "packaging_type": "glass",
-  "packaging_weight_kg": 0.3,
-  "transport_km": ${__Random(50,500)},
-  "has_bio_label": 1,
-  "has_recyclable": 1,
-  "has_local_label": 0,
-  "category": "sauce"
-}</stringProp>
-                <stringProp name="Argument.metadata">=</stringProp>
-              </elementProp>
-            </collectionProp>
+            <collectionProp name="Arguments.arguments"/>
           </elementProp>
-          <stringProp name="HTTPSampler.domain">${BASE_URL}</stringProp>
-          <stringProp name="HTTPSampler.port">${SCORING_PORT}</stringProp>
+          <stringProp name="HTTPSampler.domain">localhost</stringProp>
+          <stringProp name="HTTPSampler.port">8003</stringProp>
           <stringProp name="HTTPSampler.protocol">http</stringProp>
-          <stringProp name="HTTPSampler.path">/score/compute</stringProp>
-          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <stringProp name="HTTPSampler.path">/health</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
           <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
           <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
         </HTTPSamplerProxy>
-        <hashTree>
-          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Headers" enabled="true">
-            <collectionProp name="HeaderManager.headers">
-              <elementProp name="" elementType="Header">
-                <stringProp name="Header.name">Content-Type</stringProp>
-                <stringProp name="Header.value">application/json</stringProp>
-              </elementProp>
-            </collectionProp>
-          </HeaderManager>
-          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Assert Score Letter" enabled="true">
-            <collectionProp name="Asserion.test_strings">
-              <stringProp name="score_letter">score_letter</stringProp>
-            </collectionProp>
-            <stringProp name="Assertion.test_field">Assertion.response_data</stringProp>
-            <boolProp name="Assertion.assume_success">false</boolProp>
-            <intProp name="Assertion.test_type">2</intProp>
-          </ResponseAssertion>
-        </hashTree>
-      </hashTree>
-      
-      <!-- ================================================= -->
-      <!-- Thread Group: LCA API Load Test -->
-      <!-- ================================================= -->
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="LCA API - Load Test" enabled="true">
-        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
-        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
-          <boolProp name="LoopController.continue_forever">false</boolProp>
-          <stringProp name="LoopController.loops">50</stringProp>
-        </elementProp>
-        <stringProp name="ThreadGroup.num_threads">5</stringProp>
-        <stringProp name="ThreadGroup.ramp_time">5</stringProp>
-      </ThreadGroup>
-      <hashTree>
-        <!-- LCA Calculation -->
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="LCA - Calculate" enabled="true">
-          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+        <hashTree/>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Health Check NLP" enabled="true">
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
-            <collectionProp name="Arguments.arguments">
-              <elementProp name="" elementType="HTTPArgument">
-                <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                <stringProp name="Argument.value">{
-  "product_name": "Pizza Test",
-  "ingredients": [
-    {"name": "tomato", "quantity_kg": 0.3},
-    {"name": "cheese", "quantity_kg": 0.15},
-    {"name": "flour", "quantity_kg": 0.2}
-  ],
-  "packaging": {"material": "cardboard", "weight_kg": 0.1},
-  "transport": {"distance_km": 150, "mode": "truck"}
-}</stringProp>
-                <stringProp name="Argument.metadata">=</stringProp>
-              </elementProp>
-            </collectionProp>
+            <collectionProp name="Arguments.arguments"/>
           </elementProp>
-          <stringProp name="HTTPSampler.domain">${BASE_URL}</stringProp>
-          <stringProp name="HTTPSampler.port">${LCA_PORT}</stringProp>
+          <stringProp name="HTTPSampler.domain">localhost</stringProp>
+          <stringProp name="HTTPSampler.port">8002</stringProp>
           <stringProp name="HTTPSampler.protocol">http</stringProp>
-          <stringProp name="HTTPSampler.path">/lca/calc</stringProp>
-          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <stringProp name="HTTPSampler.path">/health</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
         </HTTPSamplerProxy>
-        <hashTree>
-          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Headers" enabled="true">
-            <collectionProp name="HeaderManager.headers">
-              <elementProp name="" elementType="Header">
-                <stringProp name="Header.name">Content-Type</stringProp>
-                <stringProp name="Header.value">application/json</stringProp>
-              </elementProp>
-            </collectionProp>
-          </HeaderManager>
-        </hashTree>
+        <hashTree/>
       </hashTree>
-      
-      <!-- ================================================= -->
-      <!-- Listeners -->
-      <!-- ================================================= -->
       <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="true">
         <boolProp name="ResultCollector.error_logging">false</boolProp>
         <objProp>
@@ -190,19 +74,11 @@
             <code>true</code>
             <message>true</message>
             <threadName>true</threadName>
-            <dataType>true</dataType>
-            <encoding>false</encoding>
-            <assertions>true</assertions>
-            <responseData>false</responseData>
-            <samplerData>false</samplerData>
-            <responseHeaders>false</responseHeaders>
-            <requestHeaders>false</requestHeaders>
           </value>
         </objProp>
         <stringProp name="filename"></stringProp>
       </ResultCollector>
       <hashTree/>
-      
       <ResultCollector guiclass="SummaryReport" testclass="ResultCollector" testname="Summary Report" enabled="true">
         <boolProp name="ResultCollector.error_logging">false</boolProp>
         <objProp>
@@ -216,34 +92,11 @@
             <code>true</code>
             <message>true</message>
             <threadName>true</threadName>
-            <dataType>true</dataType>
-            <encoding>false</encoding>
-            <assertions>true</assertions>
-          </value>
-        </objProp>
-        <stringProp name="filename">jmeter-results/summary.csv</stringProp>
-      </ResultCollector>
-      <hashTree/>
-      
-      <ResultCollector guiclass="GraphVisualizer" testclass="ResultCollector" testname="Graph Results" enabled="true">
-        <boolProp name="ResultCollector.error_logging">false</boolProp>
-        <objProp>
-          <name>saveConfig</name>
-          <value class="SampleSaveConfiguration">
-            <time>true</time>
-            <latency>true</latency>
-            <timestamp>true</timestamp>
-            <success>true</success>
-            <label>true</label>
-            <code>true</code>
-            <message>true</message>
-            <threadName>true</threadName>
           </value>
         </objProp>
         <stringProp name="filename"></stringProp>
       </ResultCollector>
       <hashTree/>
-      
     </hashTree>
   </hashTree>
 </jmeterTestPlan>
