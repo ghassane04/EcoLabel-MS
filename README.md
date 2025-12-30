@@ -33,12 +33,12 @@
 ## 🎬 Démo Vidéo
 
 <p align="center">
-  <a href="docs/Ecolabel-MS_Test.mp4">
-    <img src="https://img.shields.io/badge/▶️_Voir_la_Démo-Video-red?style=for-the-badge" alt="Voir la démo"/>
+  <a href="https://youtu.be/9TMHXgLH9ig">
+    <img src="https://img.youtube.com/vi/9TMHXgLH9ig/maxresdefault.jpg" alt="Démo EcoLabel-MS" width="600"/>
   </a>
 </p>
 
-> **📹 Vidéo de démonstration** : Une présentation complète de toutes les fonctionnalités d'EcoLabel-MS est disponible dans le fichier `docs/Ecolabel-MS_Test.mp4`.
+> 🎥 **Cliquez sur l'image** pour voir la démonstration complète sur YouTube.
 
 ---
 
