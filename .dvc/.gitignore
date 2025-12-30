@@ -1,0 +1,4 @@
+# Ignore DVC internal files
+/config.local
+/tmp
+/cache

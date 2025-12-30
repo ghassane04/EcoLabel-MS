@@ -1,0 +1,9 @@
+# EcoLabel-MS DVC Tracked Data
+# These files are tracked by DVC for reproducibility
+
+# Scoring model and dataset
+scoring/models/scoring_model.pkl
+scoring/data/training_dataset.csv
+
+# LCA model and data
+lca-lite/data/co2_training.csv

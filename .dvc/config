@@ -1,0 +1,17 @@
+# DVC Configuration for EcoLabel-MS
+# Data Version Control for ML model and dataset versioning
+
+[core]
+    remote = minio
+    autostage = true
+
+[remote "minio"]
+    url = s3://ecolabel-data
+    endpointurl = http://localhost:9000
+    access_key_id = minioadmin
+    secret_access_key = minioadmin
+
+# Cache settings
+[cache]
+    type = reflink,copy
+    local = true
