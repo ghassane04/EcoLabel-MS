@@ -1,7 +1,3 @@
-<p align="center">
-  <img src="docs/images/ecolabel-logo.png" alt="EcoLabel-MS Logo" width="200"/>
-</p>
-
 <h1 align="center">🌿 EcoLabel-MS</h1>
 
 <p align="center">
@@ -29,8 +25,20 @@
 </p>
 
 <p align="center">
-  📅 <strong>Dernière mise à jour :</strong> 29 Décembre 2024
+  📅 <strong>Dernière mise à jour :</strong> 30 Décembre 2024
 </p>
+
+---
+
+## 🎬 Démo Vidéo
+
+<p align="center">
+  <a href="docs/Ecolabel-MS_Test.mp4">
+    <img src="https://img.shields.io/badge/▶️_Voir_la_Démo-Video-red?style=for-the-badge" alt="Voir la démo"/>
+  </a>
+</p>
+
+> **📹 Vidéo de démonstration** : Une présentation complète de toutes les fonctionnalités d'EcoLabel-MS est disponible dans le fichier `docs/Ecolabel-MS_Test.mp4`.
 
 ---
 
