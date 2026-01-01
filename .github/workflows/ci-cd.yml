@@ -22,7 +22,19 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        service: [scoring, lca-lite, nlp-ingredients, parser-produit, provenance]
+        include:
+          - service: scoring
+            test_path: tests/
+          - service: lca-lite
+            test_path: tests/
+          - service: nlp-ingredients
+            test_path: tests/
+          - service: parser-produit
+            test_path: tests/
+          - service: provenance
+            test_path: tests/
+          - service: widget-api
+            test_path: backend/tests/
     
     steps:
       - name: 📥 Checkout code
@@ -35,15 +47,24 @@ jobs:
 
       - name: 📦 Install dependencies
         run: |
-          cd ${{ matrix.service }}
+          if [ "${{ matrix.service }}" = "widget-api" ]; then
+            cd ${{ matrix.service }}/backend
+          else
+            cd ${{ matrix.service }}
+          fi
           pip install -r requirements.txt
           pip install pytest pytest-cov httpx
         continue-on-error: true
 
       - name: 🧪 Run tests
         run: |
-          cd ${{ matrix.service }}
-          pytest tests/ -v --cov=app --cov-report=xml:coverage.xml || echo "Tests completed"
+          if [ "${{ matrix.service }}" = "widget-api" ]; then
+            cd ${{ matrix.service }}/backend
+            pytest tests/ -v --cov=app --cov-report=xml:coverage.xml || echo "Tests completed"
+          else
+            cd ${{ matrix.service }}
+            pytest ${{ matrix.test_path }} -v --cov=app --cov-report=xml:coverage.xml || echo "Tests completed"
+          fi
         continue-on-error: true
 
   # ===========================================
@@ -67,11 +88,18 @@ jobs:
       - name: 📦 Install dependencies and generate coverage
         run: |
           pip install pytest pytest-cov httpx
-          # Generate coverage for scoring
+          # Generate coverage for all microservices
           cd scoring && pip install -r requirements.txt && pytest tests/ --cov=app --cov-report=xml:coverage.xml || true
           cd ..
-          # Generate coverage for lca-lite
           cd lca-lite && pip install -r requirements.txt && pytest tests/ --cov=app --cov-report=xml:coverage.xml || true
+          cd ..
+          cd nlp-ingredients && pip install -r requirements.txt && pytest tests/ --cov=app --cov-report=xml:coverage.xml || true
+          cd ..
+          cd parser-produit && pip install -r requirements.txt && pytest tests/ --cov=app --cov-report=xml:coverage.xml || true
+          cd ..
+          cd provenance && pip install -r requirements.txt && pytest tests/ --cov=app --cov-report=xml:coverage.xml || true
+          cd ..
+          cd widget-api/backend && pip install -r requirements.txt && pytest tests/ --cov=app --cov-report=xml:coverage.xml || true
       
       - name: 🔍 SonarCloud Scan
         uses: SonarSource/sonarqube-scan-action@v6
@@ -111,4 +139,6 @@ jobs:
       - name: 🚀 Deploy ready
         run: |
           echo "✅ Deployment ready!"
+          echo "All 6 microservices tested: parser-produit, nlp-ingredients, lca-lite, scoring, provenance, widget-api"
           echo "Run: docker compose up -d"
+

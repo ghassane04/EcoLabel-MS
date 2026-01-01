@@ -25,7 +25,7 @@
 </p>
 
 <p align="center">
-  📅 <strong>Dernière mise à jour :</strong> 30 Décembre 2024
+  📅 <strong>Dernière mise à jour :</strong> 30 Décembre 2025
 </p>
 
 ---
@@ -443,7 +443,7 @@ EcoLabel-MS/
 </table>
 
 **🏫 École Marocaine des Sciences de l'Ingénieur (EMSI)**  
-📆 Année académique **2024-2025**
+📆 Année académique **2025-2026**
 
 ---
 
@@ -460,7 +460,7 @@ EcoLabel-MS/
 ## 📝 Licence
 
 Ce projet est développé dans un cadre académique.  
-**MIT License** - Tous droits réservés © 2024
+**MIT License** - Tous droits réservés © 2025
 
 ---
 
